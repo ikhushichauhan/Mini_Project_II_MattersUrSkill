@@ -1,4 +1,4 @@
-# 📌 MattersUrSkill
+# MattersUrSkill
 
 MattersUrSkill is a university mini project based on the MERN stack concept, aimed at reducing unemployment caused by limited access to skill-based work opportunities.
 
@@ -6,7 +6,7 @@ The platform focuses on connecting students, housewives, unemployed, and less-ed
 
 ---
 
-## 🧩 Problem Statement
+## Problem Statement
 
 Many students, housewives, and unemployed individuals lack opportunities to earn money due to time constraints, limited access, or the absence of trusted platforms. At the same time, individuals and businesses struggle to find reliable workers for tasks ranging from home-based work to local services.
 
@@ -14,7 +14,7 @@ This gap results in unemployment, dependency on middlemen, and underutilization 
 
 ---
 
-## 🎯 Objectives
+## Objectives
 
 - To provide a trusted digital platform for skill-based work opportunities  
 - To empower students, housewives, and unemployed individuals through flexible work options  
@@ -24,7 +24,7 @@ This gap results in unemployment, dependency on middlemen, and underutilization 
 
 ---
 
-## 🛠️ Proposed Solution
+## Proposed Solution
 
 MattersUrSkill is designed as a MERN stack–based web platform that connects people who need work done with individuals willing to work based on their skills, availability, and location.
 
@@ -32,7 +32,7 @@ Workers can list their skills such as home-based work, part-time tasks, or local
 
 ---
 
-## 🧑‍🤝‍🧑 Team Roles
+## Team Roles
 
 - **Project Lead**: Repository management, planning, and integration  : Khushi Chauhan  
 - **Database Management**: Database Handling, and reports             : AKanksha Kumari
@@ -42,7 +42,7 @@ Workers can list their skills such as home-based work, part-time tasks, or local
 
 ---
 
-## 💻 Technology Stack
+## Technology Stack
 
 - **Frontend**: HTML, CSS, JavaScript (Prototype phase)  
 - **Backend**: Node.js, Express.js (Learning phase)  
@@ -51,7 +51,7 @@ Workers can list their skills such as home-based work, part-time tasks, or local
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 MattersUrSkill/
 ├── client/     # React frontend
