@@ -51,14 +51,6 @@ Workers can list their skills such as home-based work, part-time tasks, or local
 
 ---
 
-## Project Structure
 
-MattersUrSkill/
-├── client/     # React frontend
-├── server/     # Node.js + Express backend
-├── docs/       # Project documentation
-├── database/   # Database design planning
-├── ui-ux/      # UI/UX planning
-└── README.md
 
 
