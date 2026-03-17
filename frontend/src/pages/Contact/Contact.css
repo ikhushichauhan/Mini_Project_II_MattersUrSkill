@@ -1,0 +1,263 @@
+.contact-page {
+  padding-top: 80px;
+  min-height: 100vh;
+  position: relative;
+  z-index: 2;
+}
+
+.contact-hero {
+  padding: 80px 0 60px;
+  text-align: center;
+}
+
+.contact-info-section {
+  padding: 60px 0;
+}
+
+.contact-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+}
+
+.info-card {
+  padding: 40px 30px;
+  border-radius: 20px;
+  text-align: center;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  border: 2px solid var(--glass-border);
+}
+
+.info-card:hover {
+  transform: translateY(-10px) scale(1.03);
+  border-color: var(--card-color);
+  box-shadow: 0 20px 60px var(--card-color);
+}
+
+.info-icon {
+  font-size: 3.5rem;
+  margin-bottom: 20px;
+  filter: drop-shadow(0 0 20px var(--card-color));
+}
+
+.info-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 15px;
+  color: var(--text-white);
+  letter-spacing: -0.5px;
+}
+
+.info-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.info-details p {
+  color: var(--text-gray);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.contact-form-section {
+  padding: 60px 0;
+}
+
+.form-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 50px;
+  border-radius: 24px;
+}
+
+.form-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.form-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  letter-spacing: -1px;
+}
+
+.title-icon {
+  font-size: 2.5rem;
+}
+
+.form-description {
+  font-size: 1.1rem;
+  color: var(--text-gray);
+}
+
+.success-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  padding: 20px;
+  background: rgba(0, 255, 136, 0.1);
+  border: 2px solid rgba(0, 255, 136, 0.4);
+  border-radius: 16px;
+  margin-bottom: 30px;
+  animation: slideDown 0.5s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.success-icon {
+  font-size: 2rem;
+}
+
+.success-message p {
+  margin: 0;
+  color: #00ff88;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.faq-section {
+  padding: 100px 0;
+  position: relative;
+}
+
+.section-title {
+  font-size: 3rem;
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 60px;
+  letter-spacing: -1.5px;
+}
+
+.faq-list {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.faq-item {
+  padding: 30px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid var(--glass-border);
+}
+
+.faq-item:hover {
+  border-color: var(--accent-cyan);
+  transform: translateX(10px);
+}
+
+.faq-item.active {
+  border-color: var(--accent-purple);
+  box-shadow: 0 10px 40px rgba(168, 85, 247, 0.2);
+}
+
+.faq-question {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.faq-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+  border-radius: 50%;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-white);
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.faq-item.active .faq-icon {
+  transform: rotate(180deg);
+}
+
+.faq-question h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-white);
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, padding-top 0.4s ease;
+}
+
+.faq-item.active .faq-answer {
+  max-height: 200px;
+  padding-top: 20px;
+}
+
+.faq-answer p {
+  color: var(--text-gray);
+  line-height: 1.8;
+  margin: 0;
+  padding-left: 60px;
+  font-size: 1rem;
+}
+
+@media (max-width: 768px) {
+  .contact-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-container {
+    padding: 30px 20px;
+  }
+
+  .form-title {
+    font-size: 2rem;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .form-description {
+    font-size: 1rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .section-title {
+    font-size: 2rem;
+  }
+
+  .faq-answer p {
+    padding-left: 20px;
+  }
+}
