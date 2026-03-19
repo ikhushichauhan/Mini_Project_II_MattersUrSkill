@@ -44,10 +44,15 @@ Workers can list their skills such as home-based work, part-time tasks, or local
 
 ## Technology Stack
 
-- **Frontend**: HTML, CSS, JavaScript (Prototype phase)  
-- **Backend**: Node.js, Express.js (Learning phase)  
-- **Database**: MongoDB (Planned)  
-- **Version Control**: Git & GitHub  
+The project has advanced significantly:
+
+ Frontend: React components for login, dashboards, and job listings are complete.
+ Backend: Express APIs for registration, login, and job posting have been tested successfully.
+ Database: MongoDB schemas for users, jobs, and ratings are functional.
+ Security: JWT and Bcrypt implemented, OTP verification active.
+
+Remaining tasks include deployment and payment API integration.
+
 
 ---
 
