@@ -54,8 +54,3 @@ The project has advanced significantly:
 Remaining tasks include deployment and payment API integration.
 
 
----
-
-
-
-
