@@ -34,11 +34,11 @@ Workers can list their skills such as home-based work, part-time tasks, or local
 
 ## Team Roles
 
-- **Project Lead**: Repository management, planning, and integration  : Khushi Chauhan  
-- **Database Management**: Database Handling, and reports             : AKanksha Kumari
-- **UI/UX Designer**: Wireframes and user flow design                 : Vikram Das
-- **Backend Learner**: Database and API planning                      : Shweta Jha
-- **Frontend Learner**: UI demo and prototype development             : Kartik Malhotra
+- **Project Lead** : Repository management, planning, and integration  : Khushi Chauhan  
+- **Database Management** : Database Handling, and reports             : AKanksha Kumari
+- **UI/UX Designer** : Wireframes and user flow design                 : Vikram Das
+- **Backend Learner** : Database and API planning                      : Shweta Jha
+- **Frontend Learner** : UI demo and prototype development             : Kartik Malhotra
 
 ---
 
