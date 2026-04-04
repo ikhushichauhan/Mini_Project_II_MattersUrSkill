@@ -3,6 +3,27 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { verifyOTP } from '../../api/authAPI';
 
+const ROLE_OPTIONS = [
+  {
+    value: 'worker',
+    label: 'Worker',
+    description: 'Find jobs, showcase CVs, and apply to opportunities.',
+  },
+  {
+    value: 'provider',
+    label: 'Provider',
+    description: 'Post jobs, review applicants, and manage hiring.',
+  },
+];
+
+const WORKER_CATEGORY_OPTIONS = [
+  { value: 'graduate',   label: 'Graduate' },
+  { value: 'student',    label: 'Student' },
+  { value: 'housewife',  label: 'Homemaker' },
+  { value: 'unemployed', label: 'Searching for work' },
+  { value: 'other',      label: 'Other' },
+];
+
 const Login = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -21,6 +42,8 @@ const Login = () => {
   const [otpVerifying, setOtpVerifying] = useState(false);
   const [otpError,     setOtpError]     = useState('');
   const [devOTP,       setDevOTP]       = useState('');
+  const [roleChoice,   setRoleChoice]   = useState('worker');
+  const [workerCategory, setWorkerCategory] = useState('graduate');
 
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
@@ -50,7 +73,13 @@ const Login = () => {
   };
 
   const switchForm = (type) => {
-    setFormType(type); setFormError(''); setRegStep('details'); setOtpCode(''); setOtpError('');
+    setFormType(type);
+    setFormError('');
+    setRegStep('details');
+    setOtpCode('');
+    setOtpError('');
+    setRoleChoice('worker');
+    setWorkerCategory('graduate');
   };
 
   const handleLogin = async (e) => {
@@ -69,16 +98,32 @@ const Login = () => {
     if (!name || !email || !password || !phone || !dateOfBirth || !profileImage) {
       setFormError('Please fill in all fields'); return;
     }
+    if (!roleChoice) {
+      setFormError('Please choose whether you are registering as a worker or provider.');
+      return;
+    }
+    if (roleChoice === 'worker' && !workerCategory) {
+      setFormError('Please select the worker category that fits you best.');
+      return;
+    }
     setSubmitting(true);
     try {
-      const res = await register({
+      const payload = {
         name,
         email,
         password,
         phone,
         dateOfBirth,
-        role: 'user',
+        role: roleChoice,
         profileImage: profileImage || '',
+      };
+
+      if (roleChoice === 'worker') {
+        payload.category = workerCategory;
+      }
+
+      const res = await register({
+        ...payload,
       });
       if (res.pendingVerification) {
         setOtpEmail(res.email);
@@ -107,128 +152,55 @@ const Login = () => {
   const maxDOB   = new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0];
 
   return (
-    <div className="min-h-screen bg-surface flex items-center justify-center px-4 py-20">
+    <div className="min-h-screen flex items-center justify-center px-4 py-20" style={{
+      background: 'var(--bg-primary)'
+    }}>
 
-      <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
-        <div style={{
-          position: 'absolute', inset: 0,
-          backgroundImage: 'linear-gradient(135deg, rgba(9,13,9,0.84) 0%, rgba(13,19,11,0.72) 55%, rgba(9,13,9,0.84) 100%), url(/images/seventh.png)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          opacity: 0.72,
-        }} />
 
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'radial-gradient(ellipse at 25% 15%, rgba(78,125,62,0.18) 0%, transparent 55%), radial-gradient(ellipse at 75% 85%, rgba(31,45,23,0.28) 0%, transparent 50%)',
-        }} />
-
-        <div style={{
-          position: 'absolute', top: '-15%', left: '-10%',
-          width: '60vw', height: '60vw',
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(124,189,103,0.22) 0%, rgba(78,125,62,0.10) 40%, transparent 70%)',
-          filter: 'blur(48px)',
-          animation: 'orbFloat1 20s ease-in-out infinite',
-        }} />
-
-        <div style={{
-          position: 'absolute', top: '25%', right: '-12%',
-          width: '45vw', height: '45vw',
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(98,157,81,0.18) 0%, rgba(31,45,23,0.07) 50%, transparent 70%)',
-          filter: 'blur(56px)',
-          animation: 'orbFloat2 26s ease-in-out infinite',
-        }} />
-
-        <div style={{
-          position: 'absolute', bottom: '-8%', left: '30%',
-          width: '38vw', height: '38vw',
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(124,189,103,0.15) 0%, transparent 65%)',
-          filter: 'blur(40px)',
-          animation: 'orbFloat3 17s ease-in-out infinite',
-        }} />
-
-        <div style={{
-          position: 'absolute', top: '8%', right: '8%',
-          width: '320px', height: '320px',
-          borderRadius: '50%',
-          border: '1px solid rgba(124,189,103,0.10)',
-          animation: 'orbSpin 35s linear infinite',
-        }} />
-        <div style={{
-          position: 'absolute', top: 'calc(8% + 30px)', right: 'calc(8% + 30px)',
-          width: '260px', height: '260px',
-          borderRadius: '50%',
-          border: '1px solid rgba(124,189,103,0.06)',
-          animation: 'orbSpin 25s linear infinite reverse',
-        }} />
-
-        <div style={{
-          position: 'absolute', bottom: '10%', left: '6%',
-          width: '220px', height: '220px',
-          borderRadius: '50%',
-          border: '1px solid rgba(124,189,103,0.08)',
-          animation: 'orbSpin 28s linear infinite',
-        }} />
-
-        <div style={{
-          position: 'absolute', inset: 0,
-          backgroundImage: 'radial-gradient(circle, rgba(124,189,103,0.07) 1px, transparent 1px)',
-          backgroundSize: '44px 44px',
-          animation: 'dotPulse 9s ease-in-out infinite',
-        }} />
-
-        <div style={{
-          position: 'absolute', top: 0, left: '-100%',
-          width: '40%', height: '100%',
-          background: 'linear-gradient(105deg, transparent 40%, rgba(124,189,103,0.04) 50%, transparent 60%)',
-          animation: 'shineBeam 12s ease-in-out infinite',
-        }} />
-      </div>
 
       <div className="w-full max-w-md relative z-10">
 
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2.5 justify-center">
             <img src="/images/logo.png" alt="MattersUrSkills" className="h-10 w-auto select-none" draggable="false" />
-            <span className="text-xl font-extrabold tracking-tight text-white">MattersUrSkills</span>
+            <span className="text-xl font-extrabold tracking-tight" style={{ color: 'var(--text-primary)' }}>MattersUrSkills</span>
           </Link>
-          <p className="text-xs text-neutral-500 mt-2">
-            {formType === 'login' ? 'Welcome back  sign in to continue' : 'Create your account to get started'}
-          </p>
         </div>
 
-        <div className="card-glass">
-
-          <div className="tab-bar mb-6">
-            <button onClick={() => switchForm('login')}    className={formType === 'login'    ? 'tab-item-active' : 'tab-item'}>Log in</button>
-            <button onClick={() => switchForm('register')} className={formType === 'register' ? 'tab-item-active' : 'tab-item'}>Register</button>
-          </div>
+        <div className="rounded-lg p-8" style={{
+          background: 'var(--button-primary-bg)',
+          border: '1px solid rgba(0, 0, 0, 0.3)'
+        }}>
 
           {formType === 'login' && (
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <label className="label-text">Email Address</label>
+                <label className="label-text text-black">Email Address</label>
                 <input type="email" name="email" value={formData.email} onChange={handleInputChange}
-                  required placeholder="you@example.com" className={inputCls} />
+                  required placeholder="you@example.com" className="input-field text-black placeholder-gray-400" />
               </div>
               <div>
-                <label className="label-text">Password</label>
+                <label className="label-text text-black">Password</label>
                 <input type="password" name="password" value={formData.password} onChange={handleInputChange}
-                  required placeholder="Enter your password" className={inputCls} />
+                  required placeholder="Enter your password" className="input-field text-black placeholder-gray-400" />
               </div>
               {formError && (
                 <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{formError}</p>
               )}
-              <button type="submit" disabled={submitting} className="btn-primary w-full mt-2">
+              <button type="submit" disabled={submitting} className="w-full mt-2" style={{
+                background: 'var(--button-primary-bg)',
+                border: '1px solid black',
+                color: 'black',
+                padding: '0.5rem 1rem',
+                borderRadius: '0.375rem',
+                fontWeight: '500',
+                fontSize: '0.875rem'
+              }}>
                 {submitting ? 'Signing in...' : 'Sign In'}
               </button>
-              <p className="text-center text-xs text-neutral-500 pt-1">
+              <p className="text-center text-xs text-black pt-1">
                 No account?{' '}
-                <button type="button" onClick={() => switchForm('register')} className="text-brand-400 hover:text-brand-300 font-semibold">
+                <button type="button" onClick={() => switchForm('register')} className="text-black hover:text-gray-600 font-semibold">
                   Register free
                 </button>
               </p>
@@ -276,9 +248,47 @@ const Login = () => {
                   />
                 </div>
               </div>
+              <div>
+                <label className="label-text">Choose Account Type</label>
+                <div className="grid sm:grid-cols-2 gap-3 mt-1">
+                  {ROLE_OPTIONS.map((option) => (
+                    <button
+                      type="button"
+                      key={option.value}
+                      onClick={() => setRoleChoice(option.value)}
+                      className={`text-left rounded-2xl border px-4 py-3 transition-colors ${
+                        roleChoice === option.value
+                          ? 'border-black text-white'
+                          : 'border-gray-300 text-black hover:border-black'
+                      }`}
+                      style={{
+                        background: roleChoice === option.value ? 'var(--bg-primary)' : 'transparent'
+                      }}
+                    >
+                      <p className="text-sm font-semibold">{option.label}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {roleChoice === 'worker' && (
+                <div>
+                  <label className="label-text">Worker Category</label>
+                  <select
+                    className={inputCls}
+                    value={workerCategory}
+                    onChange={(e) => setWorkerCategory(e.target.value)}
+                  >
+                    {WORKER_CATEGORY_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <label className="flex items-center gap-2.5 cursor-pointer">
-                <input type="checkbox" required className="w-4 h-4 accent-brand-500 flex-shrink-0" />
-                <span className="text-xs text-neutral-400">I confirm I am 18 years or older and agree to the Terms of Service.</span>
+                <input type="checkbox" required className="w-4 h-4 accent-black flex-shrink-0" />
+                <span className="text-xs text-black">I confirm I am 18 years or older and agree to the Terms of Service.</span>
               </label>
               {formError && (
                 <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{formError}</p>
@@ -286,9 +296,9 @@ const Login = () => {
               <button type="submit" disabled={submitting} className="btn-primary w-full">
                 {submitting ? 'Creating account...' : 'Create Account & Send OTP'}
               </button>
-              <p className="text-center text-xs text-neutral-500">
+              <p className="text-center text-xs text-black">
                 Have an account?{' '}
-                <button type="button" onClick={() => switchForm('login')} className="text-brand-400 hover:text-brand-300 font-semibold">
+                <button type="button" onClick={() => switchForm('login')} className="text-black hover:text-gray-600 font-semibold">
                   Sign in
                 </button>
               </p>
@@ -297,20 +307,20 @@ const Login = () => {
 
           {formType === 'register' && regStep === 'verify-otp' && (
             <div className="space-y-5">
-              <div className="text-center pb-4 border-b border-surface-border">
-                <p className="font-bold text-white text-base mb-1">Verify Your Email</p>
-                <p className="text-xs text-neutral-400">
+              <div className="text-center pb-4 border-b border-gray-300">
+                <p className="font-bold text-black text-base mb-1">Verify Your Email</p>
+                <p className="text-xs text-black">
                   A 6-digit code was sent to{' '}
-                  <span className="text-white font-semibold">{otpEmail}</span>
+                  <span className="text-black font-semibold">{otpEmail}</span>
                 </p>
               </div>
               {devOTP && (
-                <div className="bg-brand-500/10 border border-brand-500/20 rounded-lg p-4 text-center">
-                  <p className="text-brand-300 text-xs font-semibold uppercase tracking-wide mb-2">
-                    Dev Mode  Brevo not configured
+                <div className="bg-gray-100 border border-gray-300 rounded-lg p-4 text-center">
+                  <p className="text-black text-xs font-semibold uppercase tracking-wide mb-2">
+                    Dev Mode — Brevo not configured
                   </p>
-                  <p className="text-white text-3xl font-black tracking-[14px]">{devOTP}</p>
-                  <p className="text-neutral-500 text-xs mt-1.5">Visible in development only</p>
+                  <p className="text-black text-3xl font-black tracking-[14px]">{devOTP}</p>
+                  <p className="text-black text-xs mt-1.5">Visible in development only</p>
                 </div>
               )}
               <div>
@@ -333,17 +343,13 @@ const Login = () => {
               </button>
               <button
                 onClick={() => { setRegStep('details'); setOtpCode(''); setOtpError(''); }}
-                className="w-full text-xs text-neutral-500 hover:text-white transition-colors text-center"
+                className="w-full text-xs text-black hover:text-gray-600 transition-colors text-center"
               >
                 Go back and resend
               </button>
             </div>
           )}
         </div>
-
-        <p className="text-center text-xs text-neutral-600 mt-6">
-          <Link to="/" className="hover:text-neutral-400 transition-colors"> Back to Home</Link>
-        </p>
       </div>
     </div>
   );

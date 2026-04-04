@@ -1,5 +1,6 @@
 const Task = require('../models/Task');
 const User = require('../models/User');
+const { sendNotification } = require('../utils/notificationService');
 
 const createTask = async (req, res, next) => {
   try {
@@ -121,9 +122,25 @@ const getMyPostedTasks = async (req, res, next) => {
 
     const tasks = await Task.find(filter)
       .populate('assignedTo', 'name email phone profileImage ratings')
+      .populate('applications.applicant', 'name email phone profileImage ratings skills')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(Number(limit));
+
+    // Populate Worker profile data including CV for each applicant
+    const Worker = require('../models/Worker');
+    for (let task of tasks) {
+      for (let app of task.applications) {
+        if (app.applicant && app.applicant._id) {
+          const workerProfile = await Worker.findOne({ user: app.applicant._id }).select('cv category isGraduate');
+          if (workerProfile) {
+            app.applicant._doc.cv = workerProfile.cv;
+            app.applicant._doc.category = workerProfile.category;
+            app.applicant._doc.isGraduate = workerProfile.isGraduate;
+          }
+        }
+      }
+    }
 
     res.json({
       success: true,
@@ -180,6 +197,21 @@ const handleApplication = async (req, res, next) => {
     }
 
     await task.save();
+
+    if (decision === 'accepted' && req.app.get('io') && req.app.get('userSockets')) {
+      await sendNotification(
+        req.app.get('io'),
+        req.app.get('userSockets'),
+        {
+          recipient: application.applicant,
+          sender: req.user._id,
+          type: 'JOB_ASSIGNED',
+          message: `Your application for "${task.title}" has been accepted!`,
+          task: task._id,
+          link: `/work-history`,
+        }
+      );
+    }
 
     res.json({
       success: true,
@@ -243,11 +275,24 @@ const getTaskById = async (req, res, next) => {
     const task = await Task.findById(req.params.id)
       .populate('postedBy',   'name email phone profileImage location ratings')
       .populate('assignedTo', 'name email phone profileImage ratings')
-      .populate('applications.applicant', 'name profileImage ratings skills');
+      .populate('applications.applicant', 'name email phone profileImage ratings skills');
 
     if (!task || !task.isActive) {
       res.status(404);
       return next(new Error('Task not found'));
+    }
+
+    // Populate Worker profile data including CV for each applicant
+    const Worker = require('../models/Worker');
+    for (let app of task.applications) {
+      if (app.applicant && app.applicant._id) {
+        const workerProfile = await Worker.findOne({ user: app.applicant._id }).select('cv category isGraduate');
+        if (workerProfile) {
+          app.applicant._doc.cv = workerProfile.cv;
+          app.applicant._doc.category = workerProfile.category;
+          app.applicant._doc.isGraduate = workerProfile.isGraduate;
+        }
+      }
     }
 
     res.json({ success: true, data: task });
@@ -283,16 +328,68 @@ const applyForTask = async (req, res, next) => {
       return next(new Error('You have already applied for this task'));
     }
 
+    const sanitize = (value) => (typeof value === 'string' ? value.trim() : '');
+
+    const availabilityStart = sanitize(req.body.availabilityDate);
+    const availabilityHours = sanitize(req.body.availabilityHours);
+    const portfolioLink     = sanitize(req.body.portfolioLink);
+
+    const expectedRateAmount =
+      req.body.expectedRateAmount !== undefined && req.body.expectedRateAmount !== null
+        ? Number(req.body.expectedRateAmount)
+        : undefined;
+
+    if (expectedRateAmount !== undefined && (Number.isNaN(expectedRateAmount) || expectedRateAmount < 0)) {
+      res.status(400);
+      return next(new Error('Expected rate must be a valid positive number'));
+    }
+
+    const allowedRateTypes = ['fixed', 'hourly', 'monthly', 'other'];
+    const expectedRateType = allowedRateTypes.includes(req.body.expectedRateType)
+      ? req.body.expectedRateType
+      : 'fixed';
+
     task.applications.push({
       applicant: req.user._id,
-      message:   req.body.message || '',
+      message:   sanitize(req.body.message) || '',
+      availability: {
+        startDate:    availabilityStart,
+        hoursPerWeek: availabilityHours,
+      },
+      expectedRate: {
+        amount:   expectedRateAmount,
+        currency: sanitize(req.body.expectedRateCurrency) || 'INR',
+        type:     expectedRateType,
+      },
+      portfolioLink,
     });
 
     await task.save();
 
+    const populatedTask = await Task.findById(task._id).populate('postedBy', 'name');
+    
+    if (req.app.get('io') && req.app.get('userSockets')) {
+      await sendNotification(
+        req.app.get('io'),
+        req.app.get('userSockets'),
+        {
+          recipient: populatedTask.postedBy._id,
+          sender: req.user._id,
+          type: 'JOB_APPLIED',
+          message: `${req.user.name} applied for your job: ${populatedTask.title}`,
+          task: task._id,
+          link: `/job/${task._id}`,
+        }
+      );
+    }
+
     res.status(201).json({
       success: true,
       message: 'Application submitted successfully',
+      data: {
+        taskId:       task._id,
+        applicationId: task.applications[task.applications.length - 1]._id,
+      },
     });
   } catch (error) {
     next(error);
@@ -353,6 +450,37 @@ const getMyApplications = async (req, res, next) => {
   }
 };
 
+const getMyAssignedTasks = async (req, res, next) => {
+  try {
+    const { status, page = 1, limit = 10 } = req.query;
+
+    const filter = {
+      assignedTo: req.user._id,
+      isActive:   true,
+    };
+    if (status) filter.status = status;
+
+    const skip  = (Number(page) - 1) * Number(limit);
+    const total = await Task.countDocuments(filter);
+
+    const tasks = await Task.find(filter)
+      .populate('postedBy', 'name profileImage location')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit));
+
+    res.json({
+      success: true,
+      total,
+      page:  Number(page),
+      pages: Math.ceil(total / Number(limit)),
+      data:  tasks,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const markTaskCompleted = async (req, res, next) => {
   try {
     const task = await Task.findById(req.params.id);
@@ -389,6 +517,44 @@ const markTaskCompleted = async (req, res, next) => {
   }
 };
 
+const withdrawApplication = async (req, res, next) => {
+  try {
+    const task = await Task.findById(req.params.id);
+
+    if (!task || !task.isActive) {
+      res.status(404);
+      return next(new Error('Task not found'));
+    }
+
+    const application = task.applications.find(
+      (app) => app.applicant.toString() === req.user._id.toString()
+    );
+
+    if (!application) {
+      res.status(404);
+      return next(new Error('Application not found'));
+    }
+
+    if (application.status !== 'pending') {
+      res.status(400);
+      return next(new Error(`Cannot withdraw ${application.status} application`));
+    }
+
+    task.applications = task.applications.filter(
+      (app) => app.applicant.toString() !== req.user._id.toString()
+    );
+
+    await task.save();
+
+    res.json({
+      success: true,
+      message: 'Application withdrawn successfully',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createTask,
   updateTask,
@@ -399,5 +565,7 @@ module.exports = {
   getTaskById,
   applyForTask,
   getMyApplications,
+  getMyAssignedTasks,
   markTaskCompleted,
+  withdrawApplication,
 };

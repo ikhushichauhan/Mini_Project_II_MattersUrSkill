@@ -162,6 +162,7 @@ const register = async (req, res, next) => {
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
+   
 
     if (!email || !password) {
       res.status(400);
@@ -169,7 +170,10 @@ const login = async (req, res, next) => {
     }
 
     const cleanedEmail = String(email).toLowerCase().trim();
+    console.log("hi")
     const user = await User.findOne({ email: cleanedEmail }).select('+password');
+    console.log("hello")
+     console.log(req.body)
 
     if (!user || !(await user.matchPassword(password))) {
       res.status(401);
@@ -180,6 +184,7 @@ const login = async (req, res, next) => {
       res.status(403);
       return next(new Error('Your account has been deactivated. Contact support.'));
     }
+     console.log(req.body,"hello")
 
     res.json({ success: true, data: userResponse(user) });
   } catch (error) {

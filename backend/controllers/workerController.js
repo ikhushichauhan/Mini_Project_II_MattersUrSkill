@@ -1,6 +1,76 @@
 const Worker = require('../models/Worker');
 const Job = require('../models/Job');
 
+const ALLOWED_CV_MIME_TYPES = [
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+];
+const MAX_CV_SIZE_BYTES = 2 * 1024 * 1024; // 2 MB
+
+const sanitizeWorkExperience = (entries = []) =>
+  entries
+    .filter((entry) => entry && typeof entry === 'object')
+    .map((entry) => {
+      const sanitized = {
+        title: String(entry.title || '').trim(),
+        company: String(entry.company || '').trim(),
+        location: String(entry.location || '').trim(),
+        startDate: String(entry.startDate || '').trim(),
+        endDate: String(entry.endDate || '').trim(),
+        currentlyWorking: Boolean(entry.currentlyWorking),
+        description: String(entry.description || '').trim(),
+      };
+
+      if (sanitized.currentlyWorking) {
+        sanitized.endDate = 'Present';
+      }
+
+      return sanitized;
+    })
+    .filter((entry) => entry.title || entry.company || entry.description);
+
+const sanitizeCvPayload = (payload) => {
+  if (!payload || typeof payload !== 'object') return null;
+
+  const fileName = String(payload.fileName || '').trim();
+  const fileType = String(payload.fileType || '').trim();
+  const rawData = payload.fileData || '';
+  const base64Segment = rawData.includes(',') ? rawData.split(',')[1] : '';
+  const fileSize = Number(payload.fileSize || 0);
+
+  if (!fileName || !rawData) return null;
+
+  if (!ALLOWED_CV_MIME_TYPES.includes(fileType)) {
+    const error = new Error('Only PDF or Word documents are allowed for CV upload');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (!base64Segment) {
+    const error = new Error('Invalid CV file data provided');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const bufferSize = Buffer.from(base64Segment, 'base64').length;
+  if (bufferSize > MAX_CV_SIZE_BYTES) {
+    const error = new Error('CV must be 2MB or smaller');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const effectiveSize = fileSize || bufferSize;
+
+  return {
+    fileName,
+    fileType,
+    fileSize: effectiveSize,
+    fileData: rawData,
+    uploadedAt: payload.uploadedAt ? new Date(payload.uploadedAt) : new Date(),
+  };
+};
+
 const getWorkerProfile = async (req, res) => {
   try {
     const worker = await Worker.findOne({ user: req.user._id }).populate('user', 'name email phone profileImage');
@@ -20,19 +90,54 @@ const updateWorkerProfile = async (req, res) => {
       return res.status(404).json({ message: 'Worker profile not found' });
     }
 
-    const { skills, bio, category, availability, location, portfolio } = req.body;
+    const {
+      skills,
+      bio,
+      category,
+      availability,
+      location,
+      portfolio,
+      isGraduate,
+      cv,
+      workExperience,
+    } = req.body;
 
-    worker.skills = skills || worker.skills;
-    worker.bio = bio || worker.bio;
-    worker.category = category || worker.category;
-    worker.availability = availability !== undefined ? availability : worker.availability;
-    worker.location = location || worker.location;
-    worker.portfolio = portfolio || worker.portfolio;
+    if (skills !== undefined) worker.skills = skills;
+    if (bio !== undefined) worker.bio = bio;
+    if (category !== undefined) worker.category = category;
+    if (availability !== undefined) worker.availability = availability;
+    if (location !== undefined) worker.location = location;
+    if (portfolio !== undefined) worker.portfolio = portfolio;
+
+    if (typeof isGraduate === 'boolean') {
+      worker.isGraduate = isGraduate;
+      if (!isGraduate) {
+        worker.cv = undefined;
+      }
+    }
+
+    if (Array.isArray(workExperience)) {
+      worker.workExperience = sanitizeWorkExperience(workExperience);
+    }
+
+    if (cv === null) {
+      worker.cv = undefined;
+    } else if (cv && worker.isGraduate) {
+      const sanitizedCv = sanitizeCvPayload(cv);
+      if (sanitizedCv) {
+        worker.cv = sanitizedCv;
+      }
+    } else if (cv && !worker.isGraduate) {
+      const error = new Error('CV upload is available only for graduate candidates');
+      error.statusCode = 400;
+      throw error;
+    }
 
     const updated = await worker.save();
     res.json(updated);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    const status = error.statusCode || 500;
+    res.status(status).json({ message: error.message });
   }
 };
 

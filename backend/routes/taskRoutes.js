@@ -10,7 +10,9 @@ const {
   getTaskById,
   applyForTask,
   getMyApplications,
+  getMyAssignedTasks,
   markTaskCompleted,
+  withdrawApplication,
 } = require('../controllers/taskController');
 const { protect }          = require('../middleware/authMiddleware');
 const { authorizeRoles }   = require('../middleware/roleMiddleware');
@@ -66,6 +68,13 @@ router.get(
   getMyApplications
 );
 
+router.get(
+  '/my-assigned',
+  protect,
+  authorizeRoles('worker'),
+  getMyAssignedTasks
+);
+
 router.get('/:id', protect, getTaskById);
 
 router.put(
@@ -73,6 +82,13 @@ router.put(
   protect,
   authorizeRoles('worker'),
   markTaskCompleted
+);
+
+router.delete(
+  '/:id/withdraw',
+  protect,
+  authorizeRoles('worker'),
+  withdrawApplication
 );
 
 module.exports = router;

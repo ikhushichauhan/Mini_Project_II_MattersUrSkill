@@ -93,6 +93,35 @@ const taskSchema = new mongoose.Schema(
           type: String,
           default: '',
         },
+        availability: {
+          startDate: {
+            type: String,
+            trim: true,
+          },
+          hoursPerWeek: {
+            type: String,
+            trim: true,
+          },
+        },
+        expectedRate: {
+          amount: {
+            type: Number,
+            min: [0, 'Expected rate cannot be negative'],
+          },
+          currency: {
+            type: String,
+            default: 'INR',
+          },
+          type: {
+            type: String,
+            enum: ['fixed', 'hourly', 'monthly', 'other'],
+            default: 'fixed',
+          },
+        },
+        portfolioLink: {
+          type: String,
+          trim: true,
+        },
         appliedAt: {
           type: Date,
           default: Date.now,
