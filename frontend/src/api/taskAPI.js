@@ -38,8 +38,8 @@ export const handleApplication = async (taskId, applicationId, decision) => {
   return data;
 };
 
-export const applyForTask = async (taskId, message = '') => {
-  const { data } = await axiosInstance.post(`/api/tasks/${taskId}/apply`, { message });
+export const applyForTask = async (taskId, payload) => {
+  const { data } = await axiosInstance.post(`/api/tasks/${taskId}/apply`, payload);
   return data;
 };
 
@@ -48,7 +48,17 @@ export const getMyApplications = async (filters = {}) => {
   return data;
 };
 
+export const getMyAssignedTasks = async (filters = {}) => {
+  const { data } = await axiosInstance.get('/api/tasks/my-assigned', { params: filters });
+  return data;
+};
+
 export const markTaskCompleted = async (taskId, rating) => {
   const { data } = await axiosInstance.put(`/api/tasks/${taskId}/complete`, { rating });
+  return data;
+};
+
+export const withdrawApplication = async (taskId) => {
+  const { data } = await axiosInstance.delete(`/api/tasks/${taskId}/withdraw`);
   return data;
 };

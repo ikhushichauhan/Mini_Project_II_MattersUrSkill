@@ -6,7 +6,7 @@ const { JWT_SECRET } = require('../config/config');
 
 function callOpenRouter(messages, systemPrompt) {
   return new Promise((resolve, reject) => {
-    const apiKey = process.env.OPENROUTER_API_KEY;
+    const apiKey = process.env.OPENROUTER_API_KEY;  
     if (!apiKey) {
       return reject(new Error('AI service is not configured. Please set OPENROUTER_API_KEY in your .env file.'));
     }
@@ -209,3 +209,5 @@ const chat = async (req, res, next) => {
 };
 
 module.exports = { chat };
+
+

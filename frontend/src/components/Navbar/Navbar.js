@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext/ThemeContext';
+import NotificationBell from '../NotificationBell/NotificationBell';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, isWorker, isProvider, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 50);
+    const onScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
@@ -33,12 +36,26 @@ const Navbar = () => {
     navigate('/');
   };
 
-  const mainLinks = [
-    { path: '/',         label: 'Home' },
-    { path: '/worker',   label: 'Find Work' },
-    { path: '/provider', label: 'Post Work' },
-    { path: '/about',    label: 'About' },
-  ];
+  let mainLinks = [];
+
+  if (isWorker) {
+    mainLinks = [
+      { path: '/', label: 'Home' },
+      { path: '/worker', label: 'Find Work' },
+      { path: '/about', label: 'About' },
+    ];
+  } else if (isProvider) {
+    mainLinks = [
+      { path: '/', label: 'Home' },
+      { path: '/provider', label: 'Post Work' },
+      { path: '/about', label: 'About' },
+    ];
+  } else {
+    mainLinks = [
+      { path: '/', label: 'Home' },
+      { path: '/about', label: 'About' },
+    ];
+  }
 
   const isActive = (path) =>
     path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
@@ -47,9 +64,13 @@ const Navbar = () => {
     <>
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-200 ${
         scrolled
-          ? 'bg-surface/95 backdrop-blur-xl border-b border-surface-border'
-          : 'bg-transparent'
-      }`}>
+          ? 'shadow-sm'
+          : ''
+      }`} style={{
+        background: 'var(--navbar-bg)',
+        backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid var(--navbar-border)'
+      }}>
         <div className="section-container-wide">
           <div className="flex items-center justify-between h-16">
 
@@ -61,10 +82,11 @@ const Navbar = () => {
               <img
                 src="/images/logo.png"
                 alt="MattersUrSkills"
-                className="h-9 w-auto object-contain select-none"
+                className="h-8 w-auto object-contain select-none"
                 draggable="false"
+                style={{ filter: 'invert(1)' }}
               />
-              <span className="text-base font-extrabold tracking-tight text-white hidden sm:inline">
+              <span className="text-base font-bold tracking-tight hidden sm:inline font-rubik" style={{ color: 'var(--navbar-text)' }}>
                 MattersUrSkills
               </span>
             </Link>
@@ -74,11 +96,10 @@ const Navbar = () => {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`px-4 py-2 text-sm font-medium transition-colors duration-150 ${
-                    isActive(link.path)
-                      ? 'text-white'
-                      : 'text-neutral-400 hover:text-white'
-                  }`}
+                  className="px-3 py-2 text-sm font-medium transition-colors font-inter rounded-md hover:bg-gray-100"
+                  style={{
+                    color: 'var(--navbar-text)'
+                  }}
                 >
                   {link.label}
                 </Link>
@@ -86,15 +107,23 @@ const Navbar = () => {
             </div>
 
             <div className="hidden md:flex items-center gap-2">
+              {isAuthenticated && <NotificationBell />}
+
               <button
-                onClick={() => window.dispatchEvent(new CustomEvent('openChatbot'))}
-                aria-label="Open AI Assistant"
-                title="AI Assistant"
-                className="w-9 h-9 flex items-center justify-center rounded-lg text-neutral-400 hover:text-white hover:bg-surface-hover transition-colors duration-150"
+                onClick={toggleTheme}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-gray-200 transition-colors"
+                style={{ background: 'var(--card-bg, #f3f4f6)' }}
+                aria-label="Toggle theme"
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" strokeWidth="1.8" stroke="currentColor">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                </svg>
+                {theme === 'dark' ? (
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" style={{ color: 'var(--navbar-text)' }}>
+                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" style={{ color: 'var(--navbar-text)' }}>
+                    <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
+                  </svg>
+                )}
               </button>
 
               {isAuthenticated ? (
@@ -102,12 +131,12 @@ const Navbar = () => {
                   <button
                     onClick={openProfilePage}
                     aria-label="Go to profile"
-                    className="w-10 h-10 rounded-full overflow-hidden border-2 border-brand-500/40 hover:border-brand-500 transition-colors duration-150"
+                    className="w-9 h-9 rounded-full overflow-hidden border-2 border-black hover:border-black transition-colors"
                   >
                     {user?.profileImage ? (
                       <img src={user.profileImage} alt={user?.name || 'Profile'} className="w-full h-full object-cover" />
                     ) : (
-                      <span className="w-full h-full bg-brand-gradient flex items-center justify-center text-white font-bold text-sm">
+                      <span className="w-full h-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
                         {(user?.name?.[0] || '?').toUpperCase()}
                       </span>
                     )}
@@ -117,13 +146,19 @@ const Navbar = () => {
                 <>
                   <Link
                     to="/login"
-                    className="px-4 py-2 text-sm font-medium text-neutral-300 hover:text-white transition-colors duration-150"
+                    className="px-3 py-2 text-sm font-medium transition-colors font-inter"
+                    style={{ color: 'var(--navbar-text)' }}
                   >
                     Log in
                   </Link>
                   <Link
                     to="/login?tab=register"
-                    className="btn-primary text-sm"
+                    className="px-4 py-2 text-sm font-medium rounded-md hover:bg-gray-100 transition-colors font-rubik"
+                    style={{ 
+                      background: 'white',
+                      color: 'var(--navbar-text)',
+                      border: '1px solid var(--navbar-text)'
+                    }}
                   >
                     Register
                   </Link>
@@ -136,56 +171,58 @@ const Navbar = () => {
               className="md:hidden w-9 h-9 flex flex-col justify-center items-center gap-1.5 focus:outline-none"
               aria-label="Menu"
             >
-              <span className={`block w-5 h-0.5 bg-white transition-all duration-200 origin-center ${menuOpen ? 'rotate-45 translate-y-2' : ''}`} />
-              <span className={`block w-5 h-0.5 bg-white transition-all duration-200 ${menuOpen ? 'opacity-0 w-0' : ''}`} />
-              <span className={`block w-5 h-0.5 bg-white transition-all duration-200 origin-center ${menuOpen ? '-rotate-45 -translate-y-2' : ''}`} />
+              <span className={`block w-5 h-0.5 bg-black transition-all duration-200 ${menuOpen ? 'rotate-45 translate-y-2' : ''}`} />
+              <span className={`block w-5 h-0.5 bg-black transition-all duration-200 ${menuOpen ? 'opacity-0' : ''}`} />
+              <span className={`block w-5 h-0.5 bg-black transition-all duration-200 ${menuOpen ? '-rotate-45 -translate-y-2' : ''}`} />
             </button>
           </div>
         </div>
 
-        <div className={`md:hidden overflow-hidden transition-all duration-200 ${menuOpen ? 'max-h-96' : 'max-h-0'}`}>
-          <div className="bg-surface-card border-t border-surface-border px-4 py-3 space-y-1">
+        <div className={`md:hidden overflow-hidden transition-all duration-200 ${menuOpen ? 'max-h-96 border-t border-white/30' : 'max-h-0'}`} style={{
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(12px)'
+        }}>
+          <div className="px-4 py-3 space-y-1">
             {mainLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
                 onClick={() => setMenuOpen(false)}
-                className={`block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  isActive(link.path) ? 'text-white bg-surface-hover' : 'text-neutral-400 hover:text-white hover:bg-surface-hover'
+                className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors font-inter ${
+                  isActive(link.path) ? 'text-white bg-black' : 'text-gray-500 hover:text-black hover:bg-gray-100'
                 }`}
               >
                 {link.label}
               </Link>
             ))}
-            <button
-              onClick={() => { setMenuOpen(false); window.dispatchEvent(new CustomEvent('openChatbot')); }}
-              className="w-full px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-400 text-left hover:text-white hover:bg-surface-hover transition-colors flex items-center gap-2"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" strokeWidth="1.8" stroke="currentColor" className="flex-shrink-0">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-              </svg>
-              AI Assistant
-            </button>
-
             {isAuthenticated ? (
               <>
                 <Link
                   to="/profile"
                   onClick={() => setMenuOpen(false)}
-                  className="w-full px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-300 text-left hover:bg-surface-hover transition-colors flex items-center gap-2"
+                  className="w-full px-3 py-2 rounded-md text-sm font-medium text-black text-left hover:bg-gray-100 transition-colors flex items-center gap-2 font-inter"
                 >
-                  <span className="w-7 h-7 rounded-full overflow-hidden border border-brand-500/40 flex items-center justify-center bg-brand-gradient flex-shrink-0">
+                  <span className="w-7 h-7 rounded-full overflow-hidden border border-border flex items-center justify-center bg-primary flex-shrink-0">
                     {user?.profileImage ? (
                       <img src={user.profileImage} alt={user?.name || 'Profile'} className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-white font-bold text-xs">{(user?.name?.[0] || '?').toUpperCase()}</span>
+                      <span className="text-primary-foreground font-bold text-xs">{(user?.name?.[0] || '?').toUpperCase()}</span>
                     )}
                   </span>
                   My Profile
                 </Link>
+                {isWorker && (
+                  <Link
+                    to="/work-history"
+                    onClick={() => setMenuOpen(false)}
+                    className="w-full px-3 py-2 rounded-md text-sm font-medium text-black text-left hover:bg-gray-100 transition-colors font-inter"
+                  >
+                    Work History
+                  </Link>
+                )}
                 <button
                   onClick={handleLogout}
-                  className="w-full px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-400 text-left hover:text-white hover:bg-surface-hover transition-colors"
+                  className="w-full px-3 py-2 rounded-md text-sm font-medium text-black text-left hover:text-black hover:bg-gray-100 transition-colors font-inter"
                 >
                   Log out
                 </button>
@@ -195,14 +232,14 @@ const Navbar = () => {
                 <Link
                   to="/login"
                   onClick={() => setMenuOpen(false)}
-                  className="block px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-400 hover:text-white hover:bg-surface-hover transition-colors"
+                  className="block px-3 py-2 rounded-md text-sm font-medium text-black hover:text-black hover:bg-gray-100 transition-colors font-inter"
                 >
                   Log in
                 </Link>
                 <Link
                   to="/login?tab=register"
                   onClick={() => setMenuOpen(false)}
-                  className="block px-3 py-2.5 rounded-lg text-sm font-semibold text-brand-400 hover:bg-surface-hover transition-colors"
+                  className="block px-3 py-2 rounded-md text-sm font-semibold text-black hover:bg-gray-100 transition-colors font-rubik"
                 >
                   Register
                 </Link>

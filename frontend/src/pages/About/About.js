@@ -10,84 +10,74 @@ const teamMembers = [
 
 const About = () => {
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="min-h-screen" style={{
+      background: 'var(--bg-primary)',
+      backdropFilter: 'blur(10px)'
+    }}>
 
-      <section
-        className="relative pt-24 pb-16 overflow-hidden"
-        style={{
-          background: 'linear-gradient(135deg, #161d12 0%, #1f2d17 40%, #191f13 100%)',
-          backgroundSize: '300% 300%',
-          animation: 'gradientShift 10s ease infinite',
-        }}
-      >
-        <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 1 }}>
-          <div style={{
-            position: 'absolute', top: '50%', left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '700px', height: '700px',
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(124,189,103,0.18) 0%, rgba(124,189,103,0.06) 45%, transparent 70%)',
-            animation: 'glowPulse 5s ease-in-out infinite',
-          }} />
-        </div>
-        <div className="section-container relative z-10">
-          <p className="section-label">About Us</p>
-          <h1 className="section-title">The team behind MattersUrSkills</h1>
-          <p className="text-neutral-400 text-sm mt-2 mb-8 max-w-lg">
+      <section className="relative pt-24 pb-16 border-b border-black">
+        <div className="section-container">
+          <p className="section-label font-rubik about-section-header" style={{ color: '#ffffff' }}>About Us</p>
+          <h1 className="section-title font-rubik mb-4 about-section-header" style={{ color: '#ffffff' }}>The team behind MattersUrSkills</h1>
+          <p className="text-gray-300 text-base mb-16 max-w-2xl font-inter" style={{ color: '#ffffff' }}>
             Students from KRMU building real-world solutions for India's skilled workforce.
           </p>
-          <p className="section-label mb-5">Our Team</p>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
-            {teamMembers.map((member, i) => (
-              <div key={i} className="card-hover text-center p-5">
-                <div className="w-20 h-20 mx-auto mb-4">
-                  <img
-                    src={member.image}
-                    alt={member.name}
-                    className="w-full h-full rounded-full object-cover border border-surface-border"
-                    onError={(e) => {
-                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&size=200&background=4F46E5&color=fff&bold=true`;
-                    }}
-                  />
+          
+          <div className="mb-8">
+            <h2 className="text-xl font-bold mb-6 font-rubik" style={{ color: '#ffffff' }}>Our Team</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+              {teamMembers.map((member, i) => (
+                <div key={i} className="text-center group p-5 transition-all duration-200 hover:shadow-md about-team-card" style={{
+                  background: '#000000'
+                }}>
+                  <div className="w-24 h-24 mx-auto mb-4 relative">
+                    <img
+                      src={member.image}
+                      alt={member.name}
+                      className="w-full h-full rounded-full object-cover border-2 border-black group-hover:border-gray-400 transition-colors"
+                      onError={(e) => {
+                        e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&size=200&background=000&color=fff&bold=true`;
+                      }}
+                    />
+                  </div>
+                  <h3 className="font-semibold text-sm mb-1 font-rubik about-team-text" style={{ color: '#ffffff' }}>{member.name}</h3>
+                  <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold mb-2 font-inter" style={{ background: 'var(--bg-primary)', color: '#ffffff', border: '1px solid #6b7280' }}>{member.role}</span>
+                  <a
+                    href={`mailto:${member.email}`}
+                    className="block text-xs transition-colors truncate mt-1 font-inter about-team-text"
+                    style={{ color: '#ffffff' }}
+                  >
+                    {member.email}
+                  </a>
                 </div>
-                <h3 className="font-semibold text-white text-sm mb-1">{member.name}</h3>
-                <span className="badge-brand mb-2 inline-block">{member.role}</span>
-                <a
-                  href={`mailto:${member.email}`}
-                  className="block text-xs text-neutral-500 hover:text-neutral-300 transition-colors truncate mt-1"
-                >
-                  {member.email}
-                </a>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
+
+          <div className="border-t border-black my-6"></div>
         </div>
       </section>
 
-      <section
-        className="py-16"
-        style={{
-          background: 'linear-gradient(135deg, #7cbd67 0%, #629d51 55%, #8ec96a 100%)',
-        }}
-      >
+      <section className="py-16" style={{ background: 'var(--button-primary-bg)' }}>
         <div className="section-container">
-          <div className="mb-10">
-            <p className="text-white font-extrabold text-2xl sm:text-3xl leading-none mb-3">Our Purpose</p>
-            <h2 className="section-title">Mission, vision and values</h2>
+          <div className="mb-10 text-center">
+            <p className="text-black font-bold text-2xl sm:text-3xl leading-none mb-3 font-rubik">Our Purpose</p>
+            <h2 className="text-lg text-gray-600 font-inter">Mission, vision and values</h2>
           </div>
-          <div className="grid md:grid-cols-3 gap-5">
+          <div className="grid md:grid-cols-3 gap-6">
             {[
-              { accent: '#4F46E5', title: 'Our Mission',  text: "To connect India's skilled workforce with genuine work opportunities, eliminating fake job scams and predatory middlemen." },
-              { accent: '#06B6D4', title: 'Our Vision',   text: 'A future where every skilled individual has equal access to work opportunities, regardless of background or location.' },
-              { accent: '#10B981', title: 'Our Values',   text: 'Transparency, trust, and technology  three pillars that guide every product and business decision we make.' },
-            ].map(({ accent, title, text }) => (
+              { title: 'Our Mission',  text: "To connect India's skilled workforce with genuine work opportunities, eliminating fake job scams and predatory middlemen." },
+              { title: 'Our Vision',   text: 'A future where every skilled individual has equal access to work opportunities, regardless of background or location.' },
+              { title: 'Our Values',   text: 'Transparency, trust, and technology — three pillars that guide every product and business decision we make.' },
+            ].map(({ title, text }) => (
               <div
                 key={title}
-                className="rounded-3xl border border-brand-300/35 bg-gradient-to-br from-brand-800/95 via-brand-700/94 to-brand-700/88 p-6 shadow-[0_10px_28px_rgba(20,34,14,0.35)] hover:scale-[1.02] hover:shadow-brand transition-all duration-300"
+                className="rounded-lg p-6 border transition-all duration-300 hover:shadow-md"
+                style={{ background: 'var(--card-bg)', borderColor: '#000000' }}
               >
-                <div className="w-1.5 h-6 rounded-full mb-4" style={{ backgroundColor: accent }} />
-                <h3 className="font-bold text-white text-sm mb-2">{title}</h3>
-                <p className="text-sm text-white/85 leading-relaxed">{text}</p>
+                <div className="w-1 h-8 rounded-full bg-black mb-4" />
+                <h3 className="font-bold text-black text-base mb-3 font-rubik">{title}</h3>
+                <p className="text-sm text-gray-600 leading-relaxed font-inter">{text}</p>
               </div>
             ))}
           </div>

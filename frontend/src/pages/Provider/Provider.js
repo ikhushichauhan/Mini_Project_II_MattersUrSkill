@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { createTask, getMyPostedTasks } from '../../api/taskAPI';
 
@@ -17,11 +18,11 @@ const STATUS_MAP = {
   pending:    'badge-pending',
 };
 
-const EMPHASIS_CARD =
-  'rounded-3xl border border-brand-300/35 bg-gradient-to-br from-brand-800/95 via-brand-700/94 to-brand-700/88 shadow-[0_10px_28px_rgba(20,34,14,0.35)]';
-const EMPHASIS_CARD_HOVER = `${EMPHASIS_CARD} hover:scale-[1.01] hover:shadow-brand transition-all duration-300`;
+const EMPHASIS_CARD = 'rounded border border-gray-300 shadow-md';
+const EMPHASIS_CARD_HOVER = `${EMPHASIS_CARD} hover:scale-[1.01] hover:shadow-lg transition-all duration-300`;
 
 const Provider = () => {
+  const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const [formData, setFormData] = useState({
     jobTitle: '', category: 'home-based', description: '',
@@ -67,23 +68,14 @@ const Provider = () => {
     } finally { setSubmitting(false); }
   };
 
-  const inputCls = 'input-field';
+  const inputCls = 'input-field text-black placeholder-gray-500';
 
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="min-h-screen pt-20" style={{ background: 'var(--button-primary-bg)' }}>
 
-      <div
-        className="border-b border-surface-border pt-16"
-        style={{
-          background: 'linear-gradient(135deg, rgba(124,189,103,0.14) 0%, rgba(31,45,23,0.96) 45%, rgba(25,31,19,1) 100%)',
-        }}
-      >
-        <div className="section-container py-10">
-          <p className="section-label">Provider Dashboard</p>
-          <h1 className="section-title">Post Work Opportunities</h1>
-          <p className="text-neutral-400 text-sm mt-2 max-w-lg">
-            Connect with skilled, verified workers across India for any task.
-          </p>
+      <div className="py-8" style={{ background: 'var(--bg-primary)' }}>
+        <div className="section-container">
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Post a Job & Find the Right Talent</h1>
         </div>
       </div>
 
@@ -92,28 +84,28 @@ const Provider = () => {
 
           <aside className="lg:col-span-2 space-y-4">
             <div className="flex items-center justify-between mb-1">
-              <h2 className="font-bold text-white text-base">Your Posted Jobs</h2>
+              <h2 className="font-bold text-black text-base">Your Posted Jobs</h2>
               {!loadingJobs && (
-                <span className="text-xs text-white/85">{postedJobs.length} total</span>
+                <span className="text-xs text-black">{postedJobs.length} total</span>
               )}
             </div>
 
             {!isAuthenticated && (
               <div className={`${EMPHASIS_CARD} p-5 text-center`}>
-                <p className="text-sm text-white/85 mb-3">Sign in to view your posted jobs.</p>
+                <p className="text-sm text-black mb-3">Sign in to view your posted jobs.</p>
               </div>
             )}
 
             {isAuthenticated && loadingJobs && (
               <div className="flex justify-center py-10">
-                <div className="w-7 h-7 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+                <div className="w-7 h-7 border-2 border-black border-t-transparent rounded-full animate-spin" />
               </div>
             )}
 
             {isAuthenticated && !loadingJobs && postedJobs.length === 0 && (
               <div className={`${EMPHASIS_CARD} p-6 text-center`}>
-                <p className="text-sm font-semibold text-white mb-1">No jobs posted yet</p>
-                <p className="text-xs text-white/80">Use the form to create your first listing.</p>
+                <p className="text-sm font-semibold text-black mb-1">No jobs posted yet</p>
+                <p className="text-xs text-gray-600">Use the form to create your first listing.</p>
               </div>
             )}
 
@@ -123,14 +115,14 @@ const Provider = () => {
                 return (
                   <div key={job._id} className={`${EMPHASIS_CARD_HOVER} p-4`}>
                     <div className="flex items-start justify-between gap-2 mb-2">
-                      <p className="font-semibold text-white text-sm leading-snug">{job.title}</p>
+                      <p className="font-semibold text-black text-sm leading-snug">{job.title}</p>
                       <span className={STATUS_MAP[statusKey] || 'badge-closed'}>
                         {statusKey}
                       </span>
                     </div>
-                    <div className="flex flex-wrap gap-3 text-xs text-white/85">
+                    <div className="flex flex-wrap gap-3 text-xs text-black">
                       {job.budget?.amount > 0 && (
-                        <span className="text-brand-400 font-semibold">
+                        <span className="text-black font-semibold">
                           &#8377;{job.budget.amount}
                         </span>
                       )}
@@ -144,6 +136,20 @@ const Provider = () => {
                         ))}
                       </div>
                     )}
+
+                    <div className="mt-4 flex items-center justify-between gap-3 border-t border-gray-200 pt-3">
+                      <p className="text-xs text-black">
+                        {Array.isArray(job.applications) && job.applications.length > 0
+                          ? `${job.applications.length} application${job.applications.length !== 1 ? 's' : ''}`
+                          : 'No applications yet'}
+                      </p>
+                      <button
+                        onClick={() => navigate(`/job/${job._id}`)}
+                        className="rounded-full bg-black text-white px-5 py-2 text-xs font-semibold hover:bg-gray-800 transition-colors"
+                      >
+                        Open
+                      </button>
+                    </div>
                   </div>
                 );
               })}
@@ -151,7 +157,7 @@ const Provider = () => {
           </aside>
 
           <section className="lg:col-span-3">
-            <h2 className="font-bold text-white text-base mb-5">Create a New Listing</h2>
+            <h2 className="font-bold text-black text-base mb-5">Create a New Listing</h2>
             <form onSubmit={handleSubmit} className={`${EMPHASIS_CARD} space-y-5 p-6 sm:p-7`}>
 
               <div className="grid sm:grid-cols-2 gap-5">
@@ -227,8 +233,8 @@ const Provider = () => {
               </div>
 
               <div>
-                <label className="label-text">Skills Required
-                  <span className="normal-case font-normal text-white/75 ml-1">(comma-separated)</span>
+                <label className="label-text text-black">Skills Required
+                  <span className="normal-case font-normal text-gray-500 ml-1">(comma-separated)</span>
                 </label>
                 <input
                   type="text" name="skills" value={formData.skills}

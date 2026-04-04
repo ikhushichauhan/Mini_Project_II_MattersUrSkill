@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { loginUser, registerUser, getMe } from '../api/authAPI';
+import { cleanupReadNotifications } from '../api/notificationAPI';
 
 const AuthContext = createContext(null);
 
@@ -88,7 +89,13 @@ export const AuthProvider = ({ children }) => {
     setUser(userData);
     return userData;
   }, []);
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    try {
+      // Cleanup read notifications before logout
+      await cleanupReadNotifications();
+    } catch (error) {
+      console.error('Failed to cleanup notifications:', error);
+    }
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
@@ -96,9 +103,10 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const isAuthenticated = !!user;
-  const isWorker        = user?.role === 'worker';
-  const isProvider      = user?.role === 'provider';
-  const isAdmin         = user?.role === 'admin';
+  const normalizedRole  = (user?.role || '').toString().toLowerCase();
+  const isWorker        = normalizedRole === 'worker';
+  const isProvider      = normalizedRole === 'provider';
+  const isAdmin         = normalizedRole === 'admin';
 
   return (
     <AuthContext.Provider

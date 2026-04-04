@@ -19,9 +19,66 @@ const workerSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ['student', 'housewife', 'unemployed', 'other'],
+      enum: ['student', 'housewife', 'unemployed', 'graduate', 'other'],
       required: true,
     },
+    isGraduate: {
+      type: Boolean,
+      default: false,
+    },
+    cv: {
+      fileName: {
+        type: String,
+        trim: true,
+      },
+      fileType: {
+        type: String,
+        trim: true,
+      },
+      fileSize: {
+        type: Number,
+        min: 0,
+      },
+      fileData: {
+        type: String,
+      },
+      uploadedAt: {
+        type: Date,
+      },
+    },
+    workExperience: [
+      {
+        title: {
+          type: String,
+          trim: true,
+        },
+        company: {
+          type: String,
+          trim: true,
+        },
+        location: {
+          type: String,
+          trim: true,
+        },
+        startDate: {
+          type: String,
+          trim: true,
+        },
+        endDate: {
+          type: String,
+          trim: true,
+        },
+        currentlyWorking: {
+          type: Boolean,
+          default: false,
+        },
+        description: {
+          type: String,
+          trim: true,
+          maxlength: 600,
+        },
+      },
+    ],
     availability: {
       type: Boolean,
       default: true,

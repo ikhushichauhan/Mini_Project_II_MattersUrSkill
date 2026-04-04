@@ -36,11 +36,11 @@ const Contact = () => {
   return (
     <div className="min-h-screen bg-surface">
 
-      <div className="bg-surface-card border-b border-surface-border pt-16">
+      <div className="border-b border-black pt-16" style={{ background: 'var(--bg-primary)' }}>
         <div className="section-container py-10">
-          <p className="section-label">Contact</p>
-          <h1 className="section-title">Get in touch</h1>
-          <p className="text-neutral-400 text-sm mt-2 max-w-lg">
+          <p className="section-label text-white">Contact</p>
+          <h1 className="section-title text-white">Get in touch</h1>
+          <p className="text-sm mt-2 max-w-lg text-white">
             Have questions? Send us a message and we'll respond as soon as possible.
           </p>
         </div>
@@ -51,8 +51,8 @@ const Contact = () => {
           <div className="grid sm:grid-cols-3 gap-5">
             {contactCards.map(({ title, lines }) => (
               <div key={title} className="card p-5">
-                <p className="font-semibold text-white text-sm mb-2">{title}</p>
-                {lines.map((l) => <p key={l} className="text-xs text-neutral-400 leading-relaxed">{l}</p>)}
+                <p className="font-semibold text-black text-sm mb-2">{title}</p>
+                {lines.map((l) => <p key={l} className="text-xs text-black leading-relaxed">{l}</p>)}
               </div>
             ))}
           </div>
@@ -62,7 +62,7 @@ const Contact = () => {
       <section className="py-14">
         <div className="section-container">
           <div className="max-w-2xl">
-            <h2 className="font-bold text-white text-base mb-5">Send Us a Message</h2>
+            <h2 className="font-bold text-base mb-5" style={{ color: 'var(--text-primary)' }}>Send Us a Message</h2>
 
             {submitted && (
               <div className="text-xs text-brand-300 bg-brand-500/10 border border-brand-500/20 rounded-lg px-4 py-3 mb-5">
@@ -118,8 +118,8 @@ const Contact = () => {
         <div className="section-container">
           <div className="max-w-2xl">
             <div className="mb-8">
-              <p className="section-label">FAQs</p>
-              <h2 className="section-title">Frequently asked questions</h2>
+              <p className="section-label" style={{ color: '#ffffff' }}>FAQs</p>
+              <h2 className="section-title" style={{ color: '#ffffff' }}>Frequently asked questions</h2>
             </div>
             <div className="space-y-2">
               {faqs.map((faq, i) => (
@@ -131,13 +131,13 @@ const Contact = () => {
                   onClick={() => setActiveFaq(activeFaq === i ? null : i)}
                 >
                   <div className="flex items-center justify-between gap-4">
-                    <p className="font-semibold text-white text-sm">{faq.q}</p>
-                    <span className={`text-brand-400 font-bold text-lg flex-shrink-0 leading-none transition-transform duration-150 ${
+                    <p className="font-semibold text-black text-sm">{faq.q}</p>
+                    <span className={`text-gray-700 font-bold text-lg flex-shrink-0 leading-none transition-transform duration-150 ${
                       activeFaq === i ? 'rotate-45' : ''
                     }`}>+</span>
                   </div>
                   {activeFaq === i && (
-                    <p className="mt-3 text-xs text-neutral-400 leading-relaxed border-t border-surface-border pt-3">
+                    <p className="mt-3 text-xs text-gray-600 leading-relaxed border-t border-surface-border pt-3">
                       {faq.a}
                     </p>
                   )}
