@@ -19,14 +19,12 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: function (origin, callback) {
-      const allowedOrigins = process.env.NODE_ENV === 'production'
-        ? (process.env.CLIENT_URL || 'http://localhost:3000').split(',').map(o => o.trim())
-        : ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001'];
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('CORS blocked'));
-      }
+      if (!origin || origin.endsWith('.vercel.app')) return callback(null, true);
+      const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:3000')
+        .split(',').map(o => o.trim());
+      allowedOrigins.push('http://localhost:3000', 'http://127.0.0.1:3000');
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      callback(new Error('CORS blocked'));
     },
     credentials: true,
   },
@@ -43,9 +41,7 @@ const devOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
 ];
-const allowedOrigins = process.env.NODE_ENV === 'production'
-  ? configuredOrigins
-  : [...new Set([...configuredOrigins, ...devOrigins])];
+const allowedOrigins = [...new Set([...configuredOrigins, ...devOrigins])];
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -56,12 +52,18 @@ app.use(
       if (!origin || allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
-
+      // Allow any vercel.app subdomain
+      if (origin && origin.endsWith('.vercel.app')) {
+        return callback(null, true);
+      }
       return callback(new Error(`CORS blocked for origin: ${origin}`));
     },
     credentials: true,
   })
 );
+
+// Handle preflight for all routes
+app.options('*', cors());
 
 app.use('/api/auth',      require('./routes/authRoutes'));
 app.use('/api/tasks',     require('./routes/taskRoutes'));
