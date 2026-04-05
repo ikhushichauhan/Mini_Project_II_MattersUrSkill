@@ -19,6 +19,12 @@ router.post('/', chat);
 router.post('/messages', protect, async (req, res) => {
   try {
     const { taskId, receiverId, message } = req.body;
+    console.log('POST /messages body:', { taskId, receiverId, message });
+    console.log('Pusher config:', {
+      appId: process.env.PUSHER_APP_ID,
+      key: process.env.PUSHER_KEY,
+      cluster: process.env.PUSHER_CLUSTER,
+    });
     const newMessage = await Message.create({
       sender:   req.user._id,
       receiver: receiverId,
@@ -29,10 +35,16 @@ router.post('/messages', protect, async (req, res) => {
       .populate('sender',   'name profileImage')
       .populate('receiver', 'name profileImage');
 
-    await pusher.trigger(`task-${taskId}`, 'new-message', populated);
+    try {
+      await pusher.trigger(`task-${taskId}`, 'new-message', populated.toObject());
+      console.log('Pusher trigger success');
+    } catch (pusherErr) {
+      console.error('Pusher trigger failed:', pusherErr.message);
+    }
 
     res.json({ success: true, data: populated });
   } catch (error) {
+    console.error('POST /messages error:', error.message);
     res.status(500).json({ success: false, message: error.message });
   }
 });
