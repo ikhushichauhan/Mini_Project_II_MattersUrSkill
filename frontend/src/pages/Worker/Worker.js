@@ -263,9 +263,9 @@ const Worker = () => {
     });
   }, [jobs, matchProfileOnly, workerProfile, user]);
 
-  const workHistory = Array.isArray(workerProfile?.workExperience) ? workerProfile.workExperience : [];
-  const hasCvOnFile = Boolean(workerProfile?.cv);
-  const smartMatchDisabled =
+  const _workHistory = Array.isArray(workerProfile?.workExperience) ? workerProfile.workExperience : [];
+  const _hasCvOnFile = Boolean(workerProfile?.cv);
+  const _smartMatchDisabled =
     !user || user.role !== 'worker' || loadingWorker || !workerProfile || Boolean(profileError);
   const isWorker = user?.role === 'worker';
 
@@ -278,7 +278,7 @@ const Worker = () => {
     );
   }, [applications]);
 
-  const handleMarkCompleted = async (taskId) => {
+  const _handleMarkCompleted = async (taskId) => {
     if (!taskId) return;
     try {
       await markTaskCompleted(taskId, undefined);
@@ -351,7 +351,7 @@ const Worker = () => {
 
   const refreshApplications = () => setApplicationsVersion((prev) => prev + 1);
 
-  const handleWithdrawApplication = async (taskId) => {
+  const _handleWithdrawApplication = async (taskId) => {
     if (!window.confirm('Are you sure you want to withdraw this application?')) return;
     
     try {
@@ -363,7 +363,7 @@ const Worker = () => {
     }
   };
 
-  const handleOpenChat = (task, otherUser) => {
+  const _handleOpenChat = (task, otherUser) => {
     setChatTask(task._id);
     setChatOtherUser(otherUser);
     setShowChatWindow(true);
@@ -375,12 +375,12 @@ const Worker = () => {
     setChatOtherUser(null);
   };
 
-  const handleShowDetails = (application, task) => {
+  const _handleShowDetails = (application, task) => {
     setSelectedApplication({ application, task });
     setShowDetailsModal(true);
   };
 
-  const handleCloseDetails = () => {
+  const _handleCloseDetails = () => {
     setShowDetailsModal(false);
     setSelectedApplication(null);
   };
