@@ -19,7 +19,9 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: function (origin, callback) {
-      if (!origin || origin.endsWith('.eu.cc')) return callback(null, true);
+      if (!origin) return callback(null, true);
+      if (origin.endsWith('.vercel.app')) return callback(null, true);
+      if (origin.endsWith('.eu.cc')) return callback(null, true);
       const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:3000')
         .split(',').map(o => o.trim());
       allowedOrigins.push('http://localhost:3000', 'http://127.0.0.1:3000');
@@ -50,6 +52,7 @@ const corsOptions = {
   origin(origin, callback) {
     if (!origin) return callback(null, true);
     if (origin.endsWith('.vercel.app')) return callback(null, true);
+    if (origin.endsWith('.eu.cc')) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
     return callback(new Error(`CORS blocked for origin: ${origin}`));
   },
