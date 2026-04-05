@@ -21,7 +21,6 @@ export const SocketProvider = ({ children }) => {
 
     const pusherInstance = new Pusher(process.env.REACT_APP_PUSHER_KEY, {
       cluster: process.env.REACT_APP_PUSHER_CLUSTER || 'ap2',
-      logToConsole: true,
     });
 
     pusherInstance.connection.bind('connected', () => setConnected(true));

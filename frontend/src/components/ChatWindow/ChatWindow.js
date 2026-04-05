@@ -42,7 +42,6 @@ const ChatWindow = ({ taskId, otherUser, onClose }) => {
     const channel = pusher.subscribe(`task-${taskId}`);
 
     channel.bind('new-message', (message) => {
-      console.log('Pusher new-message received:', message);
       const senderId = message.sender?._id || message.sender;
       // if this is our own message coming back from Pusher, replace the temp one
       if (senderId === user._id) {
@@ -86,7 +85,6 @@ const ChatWindow = ({ taskId, otherUser, onClose }) => {
 
     try {
       const res = await sendMessage(taskId, otherUser._id, tempMessage.message);
-      console.log('sendMessage response:', res);
       const saved = res.data;
       pendingIds.current.add(saved._id?.toString());
       setMessages((prev) => prev.map((m) => (m._id === tempId ? saved : m)));
