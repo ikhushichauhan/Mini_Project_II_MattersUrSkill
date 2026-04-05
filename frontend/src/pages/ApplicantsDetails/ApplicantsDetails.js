@@ -8,7 +8,7 @@ const EMPHASIS_CARD = 'rounded-lg border shadow-md';
 
 const ApplicantsDetails = () => {
   const navigate = useNavigate();
-  const { user, isProvider } = useAuth();
+  const { isProvider } = useAuth();
   const [applicants, setApplicants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

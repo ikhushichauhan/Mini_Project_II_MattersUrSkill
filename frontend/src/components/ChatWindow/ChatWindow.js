@@ -14,10 +14,10 @@ const ChatWindow = ({ taskId, otherUser, onClose }) => {
 
   useEffect(() => {
     if (taskId) {
-      fetchMessages();
-      joinChatRoom();
+      fetchMessages(); // eslint-disable-line react-hooks/exhaustive-deps
+      joinChatRoom();  // eslint-disable-line react-hooks/exhaustive-deps
     }
-  }, [taskId]);
+  }, [taskId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!socket) return;

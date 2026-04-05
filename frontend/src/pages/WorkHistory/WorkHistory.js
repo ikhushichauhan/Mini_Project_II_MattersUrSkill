@@ -14,7 +14,7 @@ const APPLICATION_STATUS_MAP = {
 
 const WorkHistory = () => {
   const navigate = useNavigate();
-  const { user, isWorker } = useAuth();
+  const { isWorker } = useAuth();
   const [activeTab, setActiveTab] = useState('applications');
   const [applications, setApplications] = useState([]);
   const [assignedTasks, setAssignedTasks] = useState([]);

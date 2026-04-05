@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { getOpenTasks, applyForTask, getMyApplications, getMyAssignedTasks, markTaskCompleted, withdrawApplication } from '../../api/taskAPI';
+import { getOpenTasks, applyForTask, getMyApplications, getMyAssignedTasks } from '../../api/taskAPI';
 import { getWorkerProfile as fetchWorkerProfile } from '../../api/workerAPI';
 import { useAuth } from '../../context/AuthContext';
-import ChatWindow from '../../components/ChatWindow/ChatWindow';
 
 const CATEGORIES = [
   { value: 'all',           label: 'All Categories' },
@@ -11,18 +10,6 @@ const CATEGORIES = [
   { value: 'freelance',     label: 'Freelancing' },
   { value: 'local-service', label: 'Local Services' },
 ];
-
-const STATUS_MAP = {
-  completed: 'badge-active',
-  active:    'badge-brand',
-  pending:   'badge-pending',
-};
-
-const APPLICATION_STATUS_MAP = {
-  pending:  'badge-pending',
-  accepted: 'badge-active',
-  rejected: 'badge-closed',
-};
 
 const EMPHASIS_CARD = 'rounded border border-gray-300 shadow-md';
 const EMPHASIS_CARD_HOVER = `${EMPHASIS_CARD} hover:scale-[1.01] hover:shadow-lg transition-all duration-300`;
@@ -59,15 +46,12 @@ const Worker = () => {
   const [applySuccess,      setApplySuccess]     = useState('');
   const [applicationToast,  setApplicationToast] = useState('');
   const [applications,      setApplications]     = useState([]);
-  const [loadingApplications, setLoadingApplications] = useState(false);
+  const [, setLoadingApplications] = useState(false);
   const [applicationsVersion, setApplicationsVersion] = useState(0);
-  const [assignedTasks,     setAssignedTasks]    = useState([]);
-  const [loadingAssigned,   setLoadingAssigned]  = useState(false);
-  const [showChatWindow,    setShowChatWindow]   = useState(false);
-  const [chatTask,          setChatTask]         = useState(null);
-  const [chatOtherUser,     setChatOtherUser]    = useState(null);
-  const [showDetailsModal,  setShowDetailsModal] = useState(false);
-  const [selectedApplication, setSelectedApplication] = useState(null);
+  const [, setAssignedTasks]    = useState([]);
+  const [, setLoadingAssigned]  = useState(false);
+  const [, setShowDetailsModal] = useState(false);
+  const [, setSelectedApplication] = useState(null);
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -263,10 +247,7 @@ const Worker = () => {
     });
   }, [jobs, matchProfileOnly, workerProfile, user]);
 
-  const _workHistory = Array.isArray(workerProfile?.workExperience) ? workerProfile.workExperience : [];
-  const _hasCvOnFile = Boolean(workerProfile?.cv);
-  const _smartMatchDisabled =
-    !user || user.role !== 'worker' || loadingWorker || !workerProfile || Boolean(profileError);
+
   const isWorker = user?.role === 'worker';
 
   const appliedTaskIds = useMemo(() => {
@@ -278,17 +259,7 @@ const Worker = () => {
     );
   }, [applications]);
 
-  const _handleMarkCompleted = async (taskId) => {
-    if (!taskId) return;
-    try {
-      await markTaskCompleted(taskId, undefined);
-      setAssignedTasks((prev) => prev.map((t) => (
-        t._id === taskId ? { ...t, status: 'completed' } : t
-      )));
-    } catch (err) {
-      alert('Failed to update task status.');
-    }
-  };
+
 
   const handleOpenApply = (job) => {
     if (!job || !isWorker) return;
@@ -351,39 +322,7 @@ const Worker = () => {
 
   const refreshApplications = () => setApplicationsVersion((prev) => prev + 1);
 
-  const _handleWithdrawApplication = async (taskId) => {
-    if (!window.confirm('Are you sure you want to withdraw this application?')) return;
-    
-    try {
-      await withdrawApplication(taskId);
-      setApplicationToast('Application withdrawn successfully');
-      refreshApplications();
-    } catch (err) {
-      alert(err.response?.data?.message || 'Failed to withdraw application');
-    }
-  };
 
-  const _handleOpenChat = (task, otherUser) => {
-    setChatTask(task._id);
-    setChatOtherUser(otherUser);
-    setShowChatWindow(true);
-  };
-
-  const handleCloseChat = () => {
-    setShowChatWindow(false);
-    setChatTask(null);
-    setChatOtherUser(null);
-  };
-
-  const _handleShowDetails = (application, task) => {
-    setSelectedApplication({ application, task });
-    setShowDetailsModal(true);
-  };
-
-  const _handleCloseDetails = () => {
-    setShowDetailsModal(false);
-    setSelectedApplication(null);
-  };
 
   return (
     <div className="min-h-screen pt-20" style={{ background: 'var(--button-primary-bg)' }}>
@@ -540,7 +479,7 @@ const Worker = () => {
         </div>
       </div>
 
-      {showChatWindow && chatTask && chatOtherUser && <ChatWindow taskId={chatTask} otherUser={chatOtherUser} onClose={handleCloseChat} />}
+
     </div>
   );
 };
