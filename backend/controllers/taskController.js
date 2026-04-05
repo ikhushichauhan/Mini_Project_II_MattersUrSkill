@@ -198,19 +198,15 @@ const handleApplication = async (req, res, next) => {
 
     await task.save();
 
-    if (decision === 'accepted' && req.app.get('io') && req.app.get('userSockets')) {
-      await sendNotification(
-        req.app.get('io'),
-        req.app.get('userSockets'),
-        {
-          recipient: application.applicant,
-          sender: req.user._id,
-          type: 'JOB_ASSIGNED',
-          message: `Your application for "${task.title}" has been accepted!`,
-          task: task._id,
-          link: `/work-history`,
-        }
-      );
+    if (decision === 'accepted') {
+      await sendNotification({
+        recipient: application.applicant,
+        sender: req.user._id,
+        type: 'JOB_ASSIGNED',
+        message: `Your application for "${task.title}" has been accepted!`,
+        task: task._id,
+        link: `/work-history`,
+      });
     }
 
     res.json({
@@ -368,20 +364,14 @@ const applyForTask = async (req, res, next) => {
 
     const populatedTask = await Task.findById(task._id).populate('postedBy', 'name');
     
-    if (req.app.get('io') && req.app.get('userSockets')) {
-      await sendNotification(
-        req.app.get('io'),
-        req.app.get('userSockets'),
-        {
-          recipient: populatedTask.postedBy._id,
-          sender: req.user._id,
-          type: 'JOB_APPLIED',
-          message: `${req.user.name} applied for your job: ${populatedTask.title}`,
-          task: task._id,
-          link: `/job/${task._id}`,
-        }
-      );
-    }
+    await sendNotification({
+      recipient: populatedTask.postedBy._id,
+      sender: req.user._id,
+      type: 'JOB_APPLIED',
+      message: `${req.user.name} applied for your job: ${populatedTask.title}`,
+      task: task._id,
+      link: `/job/${task._id}`,
+    });
 
     res.status(201).json({
       success: true,

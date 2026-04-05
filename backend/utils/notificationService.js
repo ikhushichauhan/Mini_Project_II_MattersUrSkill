@@ -1,20 +1,29 @@
 const Notification = require('../models/Notification');
+const Pusher = require('pusher');
 
-const sendNotification = async (io, userSockets, notificationData) => {
+const pusher = new Pusher({
+  appId:   process.env.PUSHER_APP_ID,
+  key:     process.env.PUSHER_KEY,
+  secret:  process.env.PUSHER_SECRET,
+  cluster: process.env.PUSHER_CLUSTER || 'ap2',
+  useTLS:  true,
+});
+
+const sendNotification = async (notificationData) => {
   try {
     const notification = await Notification.create(notificationData);
-    
-    const populatedNotification = await Notification.findById(notification._id)
+
+    const populated = await Notification.findById(notification._id)
       .populate('sender', 'name profileImage')
       .populate('task', 'title');
 
-    const recipientSocketId = userSockets.get(notificationData.recipient.toString());
-    
-    if (recipientSocketId) {
-      io.to(recipientSocketId).emit('new_notification', populatedNotification);
-    }
+    await pusher.trigger(
+      `user-${notificationData.recipient.toString()}`,
+      'new_notification',
+      populated.toObject()
+    );
 
-    return populatedNotification;
+    return populated;
   } catch (error) {
     console.error('Error sending notification:', error);
     throw error;

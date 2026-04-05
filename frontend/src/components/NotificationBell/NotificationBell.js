@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSocket } from '../../context/SocketContext';
 import { getNotifications, markNotificationRead, markAllNotificationsRead } from '../../api/notificationAPI';
+import { useAuth } from '../../context/AuthContext';
 
 const NotificationBell = () => {
   const [notifications, setNotifications] = useState([]);
@@ -10,28 +11,26 @@ const NotificationBell = () => {
   const [loading, setLoading] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
-  const { socket } = useSocket();
+  const { pusher } = useSocket();
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchNotifications();
   }, []);
 
   useEffect(() => {
-    if (!socket) return;
+    if (!pusher || !user) return;
 
-    const handleNewNotification = (notification) => {
+    const channel = pusher.subscribe(`user-${user._id}`);
+    channel.bind('new_notification', (notification) => {
       setNotifications((prev) => [notification, ...prev]);
-      if (!notification.read) {
-        setUnreadCount((prev) => prev + 1);
-      }
-    };
-
-    socket.on('new_notification', handleNewNotification);
+      if (!notification.read) setUnreadCount((prev) => prev + 1);
+    });
 
     return () => {
-      socket.off('new_notification', handleNewNotification);
+      pusher.unsubscribe(`user-${user._id}`);
     };
-  }, [socket]);
+  }, [pusher, user]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
