@@ -8,7 +8,7 @@ const EMPHASIS_CARD = 'rounded border border-gray-300 bg-white shadow-sm';
 const WorkerProfile = () => {
   const { workerId } = useParams();
   const navigate = useNavigate();
-  const { user, isProvider } = useAuth();
+  const { isProvider } = useAuth();
   const [worker, setWorker] = useState(null);
   const [workerProfile, setWorkerProfile] = useState(null);
   const [loading, setLoading] = useState(true);
