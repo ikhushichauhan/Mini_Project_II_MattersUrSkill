@@ -1,56 +1,42 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { io } from 'socket.io-client';
+import Pusher from 'pusher-js';
 import { useAuth } from './AuthContext';
 
 const SocketContext = createContext(null);
 
 export const SocketProvider = ({ children }) => {
-  const [socket, setSocket] = useState(null);
+  const [pusher, setPusher] = useState(null);
   const [connected, setConnected] = useState(false);
   const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
     if (!isAuthenticated || !user) {
-      if (socket) {
-        socket.disconnect();
-        setSocket(null);
+      if (pusher) {
+        pusher.disconnect();
+        setPusher(null);
         setConnected(false);
       }
       return;
     }
 
-    const newSocket = io(process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000', {
-      transports: ['websocket', 'polling'],
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
+    const pusherInstance = new Pusher(process.env.REACT_APP_PUSHER_KEY, {
+      cluster: process.env.REACT_APP_PUSHER_CLUSTER || 'ap2',
+      logToConsole: true,
     });
 
-    newSocket.on('connect', () => {
-      console.log('Socket connected:', newSocket.id);
-      setConnected(true);
-      newSocket.emit('register_user', user._id);
-    });
+    pusherInstance.connection.bind('connected', () => setConnected(true));
+    pusherInstance.connection.bind('disconnected', () => setConnected(false));
+    pusherInstance.connection.bind('error', () => setConnected(false));
 
-    newSocket.on('disconnect', () => {
-      console.log('Socket disconnected');
-      setConnected(false);
-    });
-
-    newSocket.on('connect_error', (error) => {
-      console.error('Socket connection error:', error);
-      setConnected(false);
-    });
-
-    setSocket(newSocket);
+    setPusher(pusherInstance);
 
     return () => {
-      newSocket.disconnect();
+      pusherInstance.disconnect();
     };
   }, [isAuthenticated, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <SocketContext.Provider value={{ socket, connected }}>
+    <SocketContext.Provider value={{ pusher, connected }}>
       {children}
     </SocketContext.Provider>
   );
@@ -58,9 +44,7 @@ export const SocketProvider = ({ children }) => {
 
 export const useSocket = () => {
   const context = useContext(SocketContext);
-  if (!context) {
-    throw new Error('useSocket must be used within SocketProvider');
-  }
+  if (!context) throw new Error('useSocket must be used within SocketProvider');
   return context;
 };
 

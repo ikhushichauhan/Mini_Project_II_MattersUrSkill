@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSocket } from '../../context/SocketContext';
-import { getChatMessages, markMessagesRead } from '../../api/chatAPI';
+import { getChatMessages, sendMessage, markMessagesRead } from '../../api/chatAPI';
 import { useAuth } from '../../context/AuthContext';
 
 const ChatWindow = ({ taskId, otherUser, onClose }) => {
@@ -9,72 +9,70 @@ const ChatWindow = ({ taskId, otherUser, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef(null);
-  const { socket } = useSocket();
+  const { pusher } = useSocket();
   const { user } = useAuth();
+  // track temp IDs so we don't duplicate when Pusher fires
+  const pendingIds = useRef(new Set());
 
   useEffect(() => {
-    if (taskId) {
-      fetchMessages(); // eslint-disable-line react-hooks/exhaustive-deps
-      joinChatRoom();  // eslint-disable-line react-hooks/exhaustive-deps
-    }
+    if (!taskId) return;
+
+    const fetchMessages = async () => {
+      setLoading(true);
+      try {
+        const data = await getChatMessages(taskId);
+        setMessages(data.data || []);
+        const unread = (data.data || []).filter(
+          (msg) => (msg.receiver?._id || msg.receiver) === user._id && !msg.read
+        );
+        if (unread.length > 0) await markMessagesRead(taskId);
+      } catch (error) {
+        console.error('Failed to fetch messages:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMessages();
   }, [taskId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (!socket) return;
+    if (!pusher || !taskId) return;
 
-    const handleReceiveMessage = (message) => {
-      if (message.task === taskId) {
+    const channel = pusher.subscribe(`task-${taskId}`);
+
+    channel.bind('new-message', (message) => {
+      console.log('Pusher new-message received:', message);
+      const senderId = message.sender?._id || message.sender;
+      // if this is our own message coming back from Pusher, replace the temp one
+      if (senderId === user._id) {
+        if (pendingIds.current.has(message._id?.toString())) return;
+        setMessages((prev) => {
+          // remove the optimistic temp message (has numeric _id) and add real one
+          const withoutTemp = prev.filter((m) => typeof m._id !== 'number');
+          return [...withoutTemp, message];
+        });
+      } else {
         setMessages((prev) => [...prev, message]);
-        scrollToBottom();
       }
-    };
-
-    socket.on('receive_message', handleReceiveMessage);
+    });
 
     return () => {
-      socket.off('receive_message', handleReceiveMessage);
+      pusher.unsubscribe(`task-${taskId}`);
     };
-  }, [socket, taskId]);
+  }, [pusher, taskId, user._id]);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const joinChatRoom = () => {
-    if (socket && taskId) {
-      socket.emit('join_chat', { taskId });
-    }
-  };
-
-  const fetchMessages = async () => {
-    setLoading(true);
-    try {
-      const data = await getChatMessages(taskId);
-      setMessages(data.data || []);
-      
-      const unreadMessages = data.data?.filter(
-        (msg) => msg.receiver === user._id && !msg.read
-      );
-      if (unreadMessages?.length > 0) {
-        await markMessagesRead(taskId);
-      }
-    } catch (error) {
-      console.error('Failed to fetch messages:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [messages]);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || !socket || sending) return;
+    if (!newMessage.trim() || sending) return;
 
+    const tempId = Date.now();
     const tempMessage = {
-      _id: Date.now(),
+      _id: tempId,
       sender: user._id,
       receiver: otherUser._id,
       message: newMessage.trim(),
@@ -87,26 +85,21 @@ const ChatWindow = ({ taskId, otherUser, onClose }) => {
     setSending(true);
 
     try {
-      socket.emit('send_message', {
-        taskId,
-        sender: user._id,
-        receiver: otherUser._id,
-        message: tempMessage.message,
-      });
+      const res = await sendMessage(taskId, otherUser._id, tempMessage.message);
+      console.log('sendMessage response:', res);
+      const saved = res.data;
+      pendingIds.current.add(saved._id?.toString());
+      setMessages((prev) => prev.map((m) => (m._id === tempId ? saved : m)));
     } catch (error) {
-      console.error('Failed to send message:', error);
-      setMessages((prev) => prev.filter((m) => m._id !== tempMessage._id));
+      console.error('Failed to send message:', error.response?.data || error.message);
+      setMessages((prev) => prev.filter((m) => m._id !== tempId));
     } finally {
       setSending(false);
     }
   };
 
-  const formatTime = (date) => {
-    return new Date(date).toLocaleTimeString('en-IN', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
+  const formatTime = (date) =>
+    new Date(date).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-2 py-8">
@@ -114,11 +107,7 @@ const ChatWindow = ({ taskId, otherUser, onClose }) => {
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
           <div className="flex items-center gap-3">
             {otherUser?.profileImage ? (
-              <img
-                src={otherUser.profileImage}
-                alt={otherUser.name}
-                className="w-10 h-10 rounded-full object-cover"
-              />
+              <img src={otherUser.profileImage} alt={otherUser.name} className="w-10 h-10 rounded-full object-cover" />
             ) : (
               <div className="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center text-white font-bold text-sm">
                 {otherUser?.name?.[0]?.toUpperCase() || '?'}
@@ -129,13 +118,7 @@ const ChatWindow = ({ taskId, otherUser, onClose }) => {
               <p className="text-xs text-gray-500">Chat about this job</p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-700 text-xl"
-            aria-label="Close chat"
-          >
-            ✕
-          </button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-xl" aria-label="Close chat">✕</button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3" style={{ background: 'var(--card-bg)' }}>
@@ -149,26 +132,16 @@ const ChatWindow = ({ taskId, otherUser, onClose }) => {
             </div>
           ) : (
             messages.map((msg, index) => {
-              const isMe = msg.sender === user._id || msg.sender?._id === user._id;
+              const senderId = msg.sender?._id || msg.sender;
+              const isMe = senderId === user._id;
               return (
-                <div
-                  key={msg._id || index}
-                  className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
-                >
+                <div key={msg._id || index} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                   <div
-                    className={`max-w-[70%] rounded-2xl px-4 py-2 shadow-sm ${
-                      isMe
-                        ? 'rounded-br-sm'
-                        : 'rounded-bl-sm border border-gray-300'
-                    }`}
+                    className={`max-w-[70%] rounded-2xl px-4 py-2 shadow-sm ${isMe ? 'rounded-br-sm' : 'rounded-bl-sm border border-gray-300'}`}
                     style={{ background: isMe ? '#16a34a' : '#e5e7eb', color: isMe ? '#ffffff' : '#000000' }}
                   >
                     <p className="text-sm leading-relaxed break-words">{msg.message}</p>
-                    <p
-                      className={`text-[10px] mt-1 ${
-                        isMe ? 'text-white/70 text-right' : 'text-gray-500'
-                      }`}
-                    >
+                    <p className={`text-[10px] mt-1 ${isMe ? 'text-white/70 text-right' : 'text-gray-500'}`}>
                       {formatTime(msg.createdAt)}
                     </p>
                   </div>
@@ -192,11 +165,7 @@ const ChatWindow = ({ taskId, otherUser, onClose }) => {
             <button
               type="submit"
               disabled={!newMessage.trim() || sending}
-              className={`rounded-lg px-6 py-2 text-sm font-semibold text-white transition-colors ${
-                !newMessage.trim() || sending
-                  ? 'bg-gray-300 cursor-not-allowed'
-                  : 'bg-black hover:bg-gray-800'
-              }`}
+              className={`rounded-lg px-6 py-2 text-sm font-semibold text-white transition-colors ${!newMessage.trim() || sending ? 'bg-gray-300 cursor-not-allowed' : 'bg-black hover:bg-gray-800'}`}
             >
               {sending ? 'Sending...' : 'Send'}
             </button>

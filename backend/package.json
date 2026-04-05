@@ -15,6 +15,7 @@
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^7.0.0",
     "nodemailer": "^8.0.2",
+    "pusher": "^5.3.3",
     "socket.io": "^4.6.1",
     "twilio": "^5.12.2"
   },
