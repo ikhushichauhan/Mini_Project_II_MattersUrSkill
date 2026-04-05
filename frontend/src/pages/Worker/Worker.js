@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { getOpenTasks, applyForTask, getMyApplications, getMyAssignedTasks } from '../../api/taskAPI';
+import { getOpenTasks, applyForTask, getMyApplications } from '../../api/taskAPI';
 import { getWorkerProfile as fetchWorkerProfile } from '../../api/workerAPI';
 import { useAuth } from '../../context/AuthContext';
 
@@ -35,8 +35,7 @@ const Worker = () => {
   const [loadingJobs,       setLoadingJobs]      = useState(false);
   const [jobsError,         setJobsError]        = useState('');
   const [workerProfile,     setWorkerProfile]    = useState(null);
-  const [loadingWorker,     setLoadingWorker]    = useState(false);
-  const [profileError,      setProfileError]     = useState('');
+
   const [matchProfileOnly,  setMatchProfileOnly] = useState(false);
   const [showApplyModal,    setShowApplyModal]   = useState(false);
   const [selectedJob,       setSelectedJob]      = useState(null);
@@ -46,12 +45,8 @@ const Worker = () => {
   const [applySuccess,      setApplySuccess]     = useState('');
   const [applicationToast,  setApplicationToast] = useState('');
   const [applications,      setApplications]     = useState([]);
-  const [, setLoadingApplications] = useState(false);
   const [applicationsVersion, setApplicationsVersion] = useState(0);
-  const [, setAssignedTasks]    = useState([]);
-  const [, setLoadingAssigned]  = useState(false);
-  const [, setShowDetailsModal] = useState(false);
-  const [, setSelectedApplication] = useState(null);
+
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -98,22 +93,11 @@ const Worker = () => {
     let ignore = false;
 
     const fetchProfile = async () => {
-      setLoadingWorker(true);
-      setProfileError('');
       try {
         const data = await fetchWorkerProfile();
-        if (!ignore) {
-          setWorkerProfile(data);
-        }
-      } catch (err) {
-        if (!ignore) {
-          setProfileError(err.response?.data?.message || 'Failed to load your profile.');
-          setMatchProfileOnly(false);
-        }
-      } finally {
-        if (!ignore) {
-          setLoadingWorker(false);
-        }
+        if (!ignore) setWorkerProfile(data);
+      } catch {
+        if (!ignore) setMatchProfileOnly(false);
       }
     };
 
@@ -133,20 +117,11 @@ const Worker = () => {
     let ignore = false;
 
     const fetchApplications = async () => {
-      setLoadingApplications(true);
       try {
         const res = await getMyApplications();
-        if (!ignore) {
-          setApplications(res.data || []);
-        }
-      } catch (err) {
-        if (!ignore) {
-          setApplications([]);
-        }
-      } finally {
-        if (!ignore) {
-          setLoadingApplications(false);
-        }
+        if (!ignore) setApplications(res.data || []);
+      } catch {
+        if (!ignore) setApplications([]);
       }
     };
 
@@ -156,39 +131,6 @@ const Worker = () => {
       ignore = true;
     };
   }, [user, applicationsVersion]);
-
-  useEffect(() => {
-    if (!user || user.role !== 'worker') {
-      setAssignedTasks([]);
-      return;
-    }
-
-    let ignore = false;
-
-    const fetchAssigned = async () => {
-      setLoadingAssigned(true);
-      try {
-        const res = await getMyAssignedTasks();
-        if (!ignore) {
-          setAssignedTasks(res.data || []);
-        }
-      } catch (err) {
-        if (!ignore) {
-          setAssignedTasks([]);
-        }
-      } finally {
-        if (!ignore) {
-          setLoadingAssigned(false);
-        }
-      }
-    };
-
-    fetchAssigned();
-
-    return () => {
-      ignore = true;
-    };
-  }, [user]);
 
   useEffect(() => {
     if (!applicationToast) return undefined;
@@ -320,7 +262,7 @@ const Worker = () => {
     }
   };
 
-  const refreshApplications = () => setApplicationsVersion((prev) => prev + 1);
+
 
 
 
