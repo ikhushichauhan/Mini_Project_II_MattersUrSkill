@@ -19,7 +19,7 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: function (origin, callback) {
-      if (!origin || origin.endsWith('.vercel.app')) return callback(null, true);
+      if (!origin || origin.endsWith('.eu.cc')) return callback(null, true);
       const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:3000')
         .split(',').map(o => o.trim());
       allowedOrigins.push('http://localhost:3000', 'http://127.0.0.1:3000');
