@@ -30,11 +30,8 @@ const ApplicantsDetails = () => {
       setLoading(true);
       setError('');
       try {
-        console.log('Fetching applicants...');
         const res = await getMyPostedTasks();
-        console.log('Response:', res);
         const tasks = res.data || [];
-        console.log('Tasks:', tasks);
         
         const allApplicants = [];
         const seen = new Set();
@@ -56,20 +53,8 @@ const ApplicantsDetails = () => {
           }
         });
         
-        console.log('All applicants:', allApplicants);
-        
-        // Sort: CV holders first, then by rating
-        allApplicants.sort((a, b) => {
-          if (a.hasCV && !b.hasCV) return -1;
-          if (!a.hasCV && b.hasCV) return 1;
-          const aRating = a.worker?.ratings?.average || 0;
-          const bRating = b.worker?.ratings?.average || 0;
-          return bRating - aRating;
-        });
-        
         setApplicants(allApplicants);
       } catch (err) {
-        console.error('Error fetching applicants:', err);
         setError(err.response?.data?.message || err.message || 'Failed to load applicants');
       } finally {
         setLoading(false);

@@ -112,7 +112,7 @@ const deleteTask = async (req, res, next) => {
 
 const getMyPostedTasks = async (req, res, next) => {
   try {
-    const { status, page = 1, limit = 10 } = req.query;
+    const { status, page = 1, limit = 20 } = req.query;
 
     const filter = { postedBy: req.user._id };
     if (status) filter.status = status;
@@ -121,26 +121,11 @@ const getMyPostedTasks = async (req, res, next) => {
     const total = await Task.countDocuments(filter);
 
     const tasks = await Task.find(filter)
-      .populate('assignedTo', 'name email phone profileImage ratings')
-      .populate('applications.applicant', 'name email phone profileImage ratings skills')
+      .populate('assignedTo', 'name email profileImage ratings')
+      .populate('applications.applicant', 'name email profileImage ratings skills')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(Number(limit));
-
-    // Populate Worker profile data including CV for each applicant
-    const Worker = require('../models/Worker');
-    for (let task of tasks) {
-      for (let app of task.applications) {
-        if (app.applicant && app.applicant._id) {
-          const workerProfile = await Worker.findOne({ user: app.applicant._id }).select('cv category isGraduate');
-          if (workerProfile) {
-            app.applicant._doc.cv = workerProfile.cv;
-            app.applicant._doc.category = workerProfile.category;
-            app.applicant._doc.isGraduate = workerProfile.isGraduate;
-          }
-        }
-      }
-    }
 
     res.json({
       success: true,
