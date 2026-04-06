@@ -278,6 +278,10 @@
   .badge-secondary { @apply badge bg-secondary text-secondary-foreground; }
   .badge-outline  { @apply badge border border-input bg-background; }
   .badge-destructive { @apply badge bg-destructive text-destructive-foreground; }
+  .badge-active   { @apply badge bg-green-100 text-black border border-green-400; }
+  .badge-closed   { @apply badge bg-gray-100 text-black border border-gray-400; }
+  .badge-pending  { @apply badge bg-yellow-100 text-black border border-yellow-400; }
+  .badge-brand    { @apply badge bg-blue-100 text-black border border-blue-400; }
 
   .divider { @apply border-t border-border my-6; }
 

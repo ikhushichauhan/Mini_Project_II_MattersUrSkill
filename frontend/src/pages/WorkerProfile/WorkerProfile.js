@@ -125,7 +125,7 @@ const WorkerProfile = () => {
                   <h2 className="font-bold text-black text-lg mb-4">Skills</h2>
                   <div className="flex flex-wrap gap-2">
                     {skillsList.map((skill) => (
-                      <span key={skill} className="badge-closed">{skill}</span>
+                      <span key={skill} className="badge-closed text-black">{skill}</span>
                     ))}
                   </div>
                 </div>
