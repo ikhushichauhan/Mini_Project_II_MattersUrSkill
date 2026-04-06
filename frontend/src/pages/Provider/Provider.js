@@ -132,7 +132,7 @@ const Provider = () => {
                     {job.skillsRequired?.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mt-2.5">
                         {job.skillsRequired.slice(0, 3).map((s) => (
-                          <span key={s} className="badge-closed text-xs">{s}</span>
+                          <span key={s} className="badge-closed text-black text-xs">{s}</span>
                         ))}
                       </div>
                     )}

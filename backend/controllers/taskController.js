@@ -95,11 +95,6 @@ const deleteTask = async (req, res, next) => {
       return next(new Error('Not authorized  you did not post this task'));
     }
 
-    if (task.status === 'completed') {
-      res.status(400);
-      return next(new Error('Cannot delete a completed task'));
-    }
-
     task.isActive = false;
     task.status   = 'cancelled';
     await task.save();

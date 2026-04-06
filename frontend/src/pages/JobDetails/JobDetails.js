@@ -47,10 +47,6 @@ const JobDetails = () => {
   };
 
   const handleDeleteJob = async () => {
-    if (job.assignedTo) {
-      alert('Cannot delete job that has been assigned to a worker');
-      return;
-    }
     if (!window.confirm('Are you sure you want to delete this job? This action cannot be undone.')) return;
     setActionLoading(true);
     try {
@@ -189,7 +185,7 @@ const JobDetails = () => {
                       <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Required Skills</p>
                       <div className="flex flex-wrap gap-2">
                         {job.skillsRequired.map((skill) => (
-                          <span key={skill} className="badge-closed text-xs">{skill}</span>
+                          <span key={skill} className="badge-closed text-black text-xs">{skill}</span>
                         ))}
                       </div>
                     </div>
@@ -268,6 +264,24 @@ const JobDetails = () => {
                               </p>
                             )}
                           </div>
+                          {app.applicant?.skills?.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 mb-3">
+                              {app.applicant.skills.map((skill) => (
+                                <span key={skill} className="badge-closed text-black text-xs">{skill}</span>
+                              ))}
+                            </div>
+                          )}
+                          {app.applicant?.cv?.fileData && (
+                            <div className="mb-3">
+                              <a
+                                href={app.applicant.cv.fileData}
+                                download={app.applicant.cv.fileName || 'cv'}
+                                className="px-3 py-1.5 text-xs font-medium bg-gray-100 text-black border border-gray-300 rounded-md hover:bg-gray-200 transition-colors"
+                              >
+                                Download CV
+                              </a>
+                            </div>
+                          )}
                           {app.status === 'pending' && (
                             <div className="flex gap-2">
                               <button

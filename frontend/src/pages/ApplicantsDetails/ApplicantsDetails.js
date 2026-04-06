@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { getMyPostedTasks } from '../../api/taskAPI';
+import { getMyPostedTasks, handleApplication } from '../../api/taskAPI';
 import ChatWindow from '../../components/ChatWindow/ChatWindow';
 
 const EMPHASIS_CARD = 'rounded-lg border shadow-md';
@@ -92,20 +92,28 @@ const ApplicantsDetails = () => {
 
   const handleAcceptApplication = async (taskId, applicationId) => {
     if (!window.confirm('Accept this application and assign the job to this worker?')) return;
-    
     setActionLoading(true);
     setActionMessage('');
     try {
-      const { handleApplication } = await import('../../api/taskAPI');
       await handleApplication(taskId, applicationId, 'accepted');
       setActionMessage('Application accepted and worker assigned successfully!');
-      
-      // Refresh applicants list
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
+      setTimeout(() => window.location.reload(), 1500);
     } catch (err) {
       setActionMessage(err.response?.data?.message || 'Failed to accept application');
+      setActionLoading(false);
+    }
+  };
+
+  const handleRejectApplication = async (taskId, applicationId) => {
+    if (!window.confirm('Reject this application?')) return;
+    setActionLoading(true);
+    setActionMessage('');
+    try {
+      await handleApplication(taskId, applicationId, 'rejected');
+      setActionMessage('Application rejected.');
+      setTimeout(() => window.location.reload(), 1500);
+    } catch (err) {
+      setActionMessage(err.response?.data?.message || 'Failed to reject application');
       setActionLoading(false);
     }
   };
@@ -199,10 +207,10 @@ const ApplicantsDetails = () => {
                       <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Skills</p>
                       <div className="flex flex-wrap gap-1.5">
                         {item.worker.skills.slice(0, 3).map((skill) => (
-                          <span key={skill} className="badge-closed text-xs" style={{ color: '#000000' }}>{skill}</span>
+                          <span key={skill} className="badge-closed text-black text-xs">{skill}</span>
                         ))}
                         {item.worker.skills.length > 3 && (
-                          <span className="badge-closed text-xs" style={{ color: '#000000' }}>+{item.worker.skills.length - 3}</span>
+                          <span className="badge-closed text-black text-xs">+{item.worker.skills.length - 3}</span>
                         )}
                       </div>
                     </div>
@@ -235,15 +243,22 @@ const ApplicantsDetails = () => {
                     </div>
                     
                     {item.application.status === 'pending' && (
-                      <button
-                        onClick={() => handleAcceptApplication(item.task._id, item.application._id)}
-                        disabled={actionLoading}
-                        className={`w-full btn-primary text-xs ${
-                          actionLoading ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
-                      >
-                        {actionLoading ? 'Processing...' : 'Accept & Assign'}
-                      </button>
+                      <>
+                        <button
+                          onClick={() => handleAcceptApplication(item.task._id, item.application._id)}
+                          disabled={actionLoading}
+                          className={`w-full btn-primary text-xs ${actionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                          {actionLoading ? 'Processing...' : 'Accept & Assign'}
+                        </button>
+                        <button
+                          onClick={() => handleRejectApplication(item.task._id, item.application._id)}
+                          disabled={actionLoading}
+                          className={`w-full text-xs px-4 py-2 rounded-md bg-red-500 text-white hover:bg-red-600 transition-colors ${actionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                          Reject
+                        </button>
+                      </>
                     )}
 
                     {item.application.status === 'accepted' && (
