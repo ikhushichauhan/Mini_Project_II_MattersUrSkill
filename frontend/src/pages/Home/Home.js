@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useAuth } from '../../context/AuthContext';
 
 const useReveal = () => {
   useEffect(() => {
@@ -71,8 +72,12 @@ const TRUST_STATS = [
 
 const Home = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const heroRef = useRef(null);
   useReveal();
+
+  const goToWork = () => navigate(isAuthenticated ? '/worker' : '/login');
+  const goToPost = () => navigate(isAuthenticated ? '/provider' : '/login');
 
   return (
     <div className="min-h-screen" style={{
@@ -116,7 +121,7 @@ const Home = () => {
                 className="flex flex-col sm:flex-row gap-3 mb-12"
               >
                 <button
-                  onClick={() => navigate('/worker')}
+                  onClick={goToWork}
                   className="btn-primary font-rubik"
                   style={{ border: '1px solid rgba(0, 0, 0, 0.3)' }}
                 >
@@ -126,7 +131,7 @@ const Home = () => {
                   </svg>
                 </button>
                 <button
-                  onClick={() => navigate('/provider')}
+                  onClick={goToPost}
                   className="font-rubik px-4 py-2 rounded-md font-medium text-sm transition-colors"
                   style={{ background: '#d1d5db', color: '#000000', border: '1px solid rgba(0, 0, 0, 0.3)' }}
                 >
@@ -196,7 +201,7 @@ const Home = () => {
             {CATEGORIES.map(({ label, sub }, i) => (
               <a
                 key={label}
-                href="/worker"
+                href={isAuthenticated ? '/worker' : '/login'}
                 className={`card-hover group cursor-pointer reveal reveal-delay-${Math.min(i + 1, 4)}`}
                 style={{ background: 'var(--card-bg)', borderColor: '#000000' }}
               >
@@ -226,18 +231,10 @@ const Home = () => {
             Join 10,000+ workers and 5,000+ businesses already using MattersUrSkills.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <button
-              onClick={() => navigate('/worker')}
-              className="btn-primary font-rubik"
-              style={{ border: '1px solid rgba(0, 0, 0, 0.3)' }}
-            >
+            <button onClick={goToWork} className="btn-primary font-rubik" style={{ border: '1px solid rgba(0, 0, 0, 0.3)' }}>
               Register as Worker
             </button>
-            <button
-              onClick={() => navigate('/provider')}
-              className="btn-outline font-rubik"
-              style={{ border: '1px solid rgba(0, 0, 0, 0.3)' }}
-            >
+            <button onClick={goToPost} className="btn-outline font-rubik" style={{ border: '1px solid rgba(0, 0, 0, 0.3)' }}>
               Post a Job
             </button>
           </div>
