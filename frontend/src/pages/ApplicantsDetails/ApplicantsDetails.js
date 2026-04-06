@@ -19,6 +19,7 @@ const ApplicantsDetails = () => {
   const [selectedCV, setSelectedCV] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionMessage, setActionMessage] = useState('');
+  const [dismissed, setDismissed] = useState(new Set());
 
   useEffect(() => {
     if (!isProvider) {
@@ -32,10 +33,10 @@ const ApplicantsDetails = () => {
       try {
         const res = await getMyPostedTasks();
         const tasks = res.data || [];
-        
+
         const allApplicants = [];
         const seen = new Set();
-        
+
         tasks.forEach(task => {
           if (task.applications && task.applications.length > 0) {
             task.applications.forEach(app => {
@@ -52,7 +53,7 @@ const ApplicantsDetails = () => {
             });
           }
         });
-        
+
         setApplicants(allApplicants);
       } catch (err) {
         setError(err.response?.data?.message || err.message || 'Failed to load applicants');
@@ -63,6 +64,10 @@ const ApplicantsDetails = () => {
 
     fetchApplicants();
   }, [isProvider, navigate]);
+
+  const handleDismiss = (workerId) => {
+    setDismissed((prev) => new Set([...prev, workerId]));
+  };
 
   const handleOpenChat = (worker, taskId) => {
     setChatWorker(worker);
@@ -77,10 +82,7 @@ const ApplicantsDetails = () => {
   };
 
   const handleViewCV = (cvData) => {
-    if (!cvData || !cvData.fileData) {
-      alert('CV not available');
-      return;
-    }
+    if (!cvData || !cvData.fileData) { alert('CV not available'); return; }
     setSelectedCV(cvData.fileData);
     setShowCVModal(true);
   };
@@ -104,7 +106,7 @@ const ApplicantsDetails = () => {
     }
   };
 
-  const handleRejectApplication = async (taskId, applicationId) => {
+  const handleRejectApplication = async (taskId, applicationId, workerId) => {
     if (!window.confirm('Reject this application?')) return;
     setActionLoading(true);
     setActionMessage('');
@@ -126,14 +128,11 @@ const ApplicantsDetails = () => {
     );
   }
 
+  const visibleApplicants = applicants.filter(item => !dismissed.has(item.worker._id));
+
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
-      <div
-        className="border-b applicants-header-separator pt-16"
-        style={{
-          background: '#ffffff',
-        }}
-      >
+      <div className="border-b applicants-header-separator pt-16" style={{ background: '#ffffff' }}>
         <div className="section-container py-10">
           <button onClick={() => navigate(-1)} className="text-sm hover:text-gray-600 mb-4 applicants-header-text" style={{ color: '#000000' }}>
             ← Back
@@ -162,14 +161,14 @@ const ApplicantsDetails = () => {
           </div>
         )}
 
-        {applicants.length === 0 ? (
+        {visibleApplicants.length === 0 ? (
           <div className={`${EMPHASIS_CARD} p-8 text-center`}>
             <p className="text-gray-700 text-sm">No applicants yet</p>
             <p className="text-gray-500 text-xs mt-2">When workers apply to your jobs, they will appear here</p>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {applicants.map((item) => (
+            {visibleApplicants.map((item) => (
               <div key={item.worker._id} className={`${EMPHASIS_CARD} ${item.hasCV ? 'ring-2 ring-gray-400' : ''}`} style={{ background: 'var(--card-bg)', borderColor: '#000000' }}>
                 <div className="p-5">
                   <div className="flex items-start gap-3 mb-4">
@@ -226,22 +225,16 @@ const ApplicantsDetails = () => {
 
                   <div className="space-y-2">
                     <div className="flex gap-2">
-                      <button
-                        onClick={() => navigate(`/worker/${item.worker._id}`)}
-                        className="flex-1 btn-primary text-xs"
-                      >
+                      <button onClick={() => navigate(`/worker/${item.worker._id}`)} className="flex-1 btn-primary text-xs">
                         Open Profile
                       </button>
                       {item.worker.cv && item.worker.cv.fileData && (
-                        <button
-                          onClick={() => handleViewCV(item.worker.cv)}
-                          className="flex-1 btn-outline text-xs"
-                        >
+                        <button onClick={() => handleViewCV(item.worker.cv)} className="flex-1 btn-outline text-xs">
                           View CV
                         </button>
                       )}
                     </div>
-                    
+
                     {item.application.status === 'pending' && (
                       <>
                         <button
@@ -252,7 +245,7 @@ const ApplicantsDetails = () => {
                           {actionLoading ? 'Processing...' : 'Accept & Assign'}
                         </button>
                         <button
-                          onClick={() => handleRejectApplication(item.task._id, item.application._id)}
+                          onClick={() => handleRejectApplication(item.task._id, item.application._id, item.worker._id)}
                           disabled={actionLoading}
                           className={`w-full text-xs px-4 py-2 rounded-md bg-red-500 text-white hover:bg-red-600 transition-colors ${actionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
@@ -262,21 +255,25 @@ const ApplicantsDetails = () => {
                     )}
 
                     {item.application.status === 'accepted' && (
-                      <button
-                        onClick={() => handleOpenChat(item.worker, item.task._id)}
-                        className="w-full btn-primary text-xs"
-                      >
-                        Chat with Worker
-                      </button>
+                      <>
+                        <button onClick={() => handleOpenChat(item.worker, item.task._id)} className="w-full btn-primary text-xs">
+                          Chat with Worker
+                        </button>
+                        <button onClick={() => handleDismiss(item.worker._id)} className="w-full text-xs px-4 py-2 rounded-md bg-gray-100 text-black border border-gray-300 hover:bg-gray-200 transition-colors">
+                          Remove from List
+                        </button>
+                      </>
                     )}
 
                     {item.application.status === 'rejected' && (
-                      <button
-                        onClick={() => navigate(`/job/${item.task._id}`)}
-                        className="w-full btn-outline text-xs"
-                      >
-                        View Job Details
-                      </button>
+                      <>
+                        <button onClick={() => navigate(`/job/${item.task._id}`)} className="w-full btn-outline text-xs">
+                          View Job Details
+                        </button>
+                        <button onClick={() => handleDismiss(item.worker._id)} className="w-full text-xs px-4 py-2 rounded-md bg-gray-100 text-black border border-gray-300 hover:bg-gray-200 transition-colors">
+                          Remove from List
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
@@ -287,11 +284,7 @@ const ApplicantsDetails = () => {
       </div>
 
       {showChatWindow && chatWorker && chatTaskId && (
-        <ChatWindow
-          taskId={chatTaskId}
-          otherUser={chatWorker}
-          onClose={handleCloseChat}
-        />
+        <ChatWindow taskId={chatTaskId} otherUser={chatWorker} onClose={handleCloseChat} />
       )}
 
       {showCVModal && selectedCV && (
@@ -299,21 +292,10 @@ const ApplicantsDetails = () => {
           <div className="w-full max-w-4xl h-[90vh] rounded-2xl border border-neutral-200 bg-white shadow-2xl flex flex-col">
             <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-200">
               <h3 className="text-lg font-semibold text-gray-900">Worker CV</h3>
-              <button
-                onClick={handleCloseCVModal}
-                className="text-gray-400 hover:text-gray-700 text-xl"
-                aria-label="Close CV viewer"
-              >
-                ✕
-              </button>
+              <button onClick={handleCloseCVModal} className="text-gray-400 hover:text-gray-700 text-xl" aria-label="Close CV viewer">✕</button>
             </div>
             <div className="flex-1 overflow-hidden">
-              <iframe
-                src={selectedCV}
-                className="w-full h-full"
-                title="Worker CV"
-                type="application/pdf"
-              />
+              <iframe src={selectedCV} className="w-full h-full" title="Worker CV" type="application/pdf" />
             </div>
           </div>
         </div>

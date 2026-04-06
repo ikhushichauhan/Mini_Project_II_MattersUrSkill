@@ -109,7 +109,7 @@ const getMyPostedTasks = async (req, res, next) => {
   try {
     const { status, page = 1, limit = 20 } = req.query;
 
-    const filter = { postedBy: req.user._id };
+    const filter = { postedBy: req.user._id, isActive: true };
     if (status) filter.status = status;
 
     const skip  = (Number(page) - 1) * Number(limit);
