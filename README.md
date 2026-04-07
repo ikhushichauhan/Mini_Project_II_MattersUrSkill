@@ -42,7 +42,7 @@ Workers can list their skills such as home-based work, part-time tasks, or local
 
 ---
 
-## Technology Stack
+## Technology Stack :
 
 The project has advanced significantly:
 
