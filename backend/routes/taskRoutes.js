@@ -27,11 +27,18 @@ router.get(
   getRelevantAndAllJobs
 );
 
-router.post(
-  '/',
+router.get(
+  '/my-applications',
   protect,
-  authorizeRoles('provider'),
-  createTask
+  authorizeRoles('worker'),
+  getMyApplications
+);
+
+router.get(
+  '/my-assigned',
+  protect,
+  authorizeRoles('worker'),
+  getMyAssignedTasks
 );
 
 router.get(
@@ -39,6 +46,13 @@ router.get(
   protect,
   authorizeRoles('provider'),
   getMyPostedTasks
+);
+
+router.post(
+  '/',
+  protect,
+  authorizeRoles('provider'),
+  createTask
 );
 
 router.put(
@@ -69,21 +83,12 @@ router.post(
   applyForTask
 );
 
-router.get(
-  '/my-applications',
+router.delete(
+  '/:id/withdraw',
   protect,
   authorizeRoles('worker'),
-  getMyApplications
+  withdrawApplication
 );
-
-router.get(
-  '/my-assigned',
-  protect,
-  authorizeRoles('worker'),
-  getMyAssignedTasks
-);
-
-router.get('/:id', protect, getTaskById);
 
 router.put(
   '/:id/complete',
@@ -92,11 +97,6 @@ router.put(
   markTaskCompleted
 );
 
-router.delete(
-  '/:id/withdraw',
-  protect,
-  authorizeRoles('worker'),
-  withdrawApplication
-);
+router.get('/:id', protect, getTaskById);
 
 module.exports = router;
