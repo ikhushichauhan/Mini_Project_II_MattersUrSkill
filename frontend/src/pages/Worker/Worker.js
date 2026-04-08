@@ -48,6 +48,8 @@ const Worker = () => {
 
   useEffect(() => {
     const fetchJobs = async () => {
+      if (!user || user?.role !== 'worker') return;
+      
       setLoadingJobs(true); setJobsError('');
       try {
         const res = await getRelevantAndAllJobs();
@@ -73,14 +75,13 @@ const Worker = () => {
 
         setRelevantJobs((res.relevantJobs || []).map(mapJob));
         setAllJobs((res.allJobs || []).map(mapJob));
-      } catch {
+      } catch (err) {
+        console.error('Failed to fetch jobs:', err);
         setJobsError('Failed to load tasks. Please try again.');
       } finally { setLoadingJobs(false); }
     };
     
-    if (user?.role === 'worker') {
-      fetchJobs();
-    }
+    fetchJobs();
   }, [user]);
 
   useEffect(() => {
@@ -339,7 +340,10 @@ const Worker = () => {
             <section>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-bold text-black text-base">Relevant Jobs</h2>
-                {!loadingJobs && <span className="text-xs text-black">{filteredRelevantJobs.length} job{filteredRelevantJobs.length !== 1 ? 's' : ''} matching your skills</span>}
+                <div className="flex items-center gap-3">
+                  {!loadingJobs && <span className="text-xs text-black">{filteredRelevantJobs.length} job{filteredRelevantJobs.length !== 1 ? 's' : ''} matching your skills</span>}
+                  <button onClick={() => window.location.reload()} className="text-xs px-3 py-1 rounded-full border border-black text-black hover:bg-black hover:text-white transition-colors">Refresh</button>
+                </div>
               </div>
 
               {loadingJobs && <div className="flex items-center justify-center py-16"><div className="w-8 h-8 border-2 border-black border-t-transparent rounded-full animate-spin" /></div>}
