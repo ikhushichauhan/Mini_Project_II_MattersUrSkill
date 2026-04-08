@@ -2,6 +2,20 @@ const Task = require('../models/Task');
 const User = require('../models/User');
 const { sendNotification } = require('../utils/notificationService');
 
+const normalizeSkills = (skills = []) =>
+  skills
+    .map((skill) => String(skill || '').toLowerCase().trim())
+    .filter(Boolean);
+
+const getWorkerSkills = (workerProfile) => {
+  return Array.from(
+    new Set([
+      ...normalizeSkills(workerProfile?.skills || []),
+      ...normalizeSkills(workerProfile?.user?.skills || []),
+    ])
+  );
+};
+
 const createTask = async (req, res, next) => {
   try {
     const {
@@ -249,7 +263,7 @@ const getAllOpenTasks = async (req, res, next) => {
 const getRelevantAndAllJobs = async (req, res, next) => {
   try {
     const Worker = require('../models/Worker');
-    const workerProfile = await Worker.findOne({ user: req.user._id });
+    const workerProfile = await Worker.findOne({ user: req.user._id }).populate('user', 'skills');
 
     if (!workerProfile) {
       const filter = { status: 'open', isActive: true };
@@ -265,7 +279,7 @@ const getRelevantAndAllJobs = async (req, res, next) => {
       });
     }
 
-    const workerSkills = (workerProfile.skills || []).map(s => s.toLowerCase().trim());
+    const workerSkills = getWorkerSkills(workerProfile);
     const filter = { status: 'open', isActive: true };
 
     const allJobs = await Task.find(filter)
@@ -348,15 +362,15 @@ const applyForTask = async (req, res, next) => {
     }
 
     const Worker = require('../models/Worker');
-    const workerProfile = await Worker.findOne({ user: req.user._id });
+    const workerProfile = await Worker.findOne({ user: req.user._id }).populate('user', 'skills');
 
     if (!workerProfile) {
       res.status(404);
       return next(new Error('Worker profile not found'));
     }
 
-    const workerSkills = (workerProfile.skills || []).map(s => s.toLowerCase());
-    const jobSkills = (task.skillsRequired || []).map(s => s.toLowerCase());
+    const workerSkills = getWorkerSkills(workerProfile);
+    const jobSkills = normalizeSkills(task.skillsRequired || []);
     const hasMatchingSkill = jobSkills.some(skill => workerSkills.includes(skill));
 
     if (!hasMatchingSkill) {

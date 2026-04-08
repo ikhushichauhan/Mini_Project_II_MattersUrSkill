@@ -69,6 +69,12 @@ const buildCareerFormData = (workerProfile) => ({
     : [],
 });
 
+const parseSkillsList = (skills) =>
+  String(skills || '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+
 const buildWorkerPayload = (form) => {
   const experiences = (form?.workExperience || [])
     .map((exp) => ({
@@ -83,6 +89,7 @@ const buildWorkerPayload = (form) => {
     .filter((exp) => exp.title || exp.company || exp.description);
 
   return {
+    skills: parseSkillsList(form?.skills),
     isGraduate: Boolean(form?.isGraduate),
     workExperience: experiences,
     cv: form?.isGraduate ? form?.cv || null : null,
