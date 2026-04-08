@@ -35,7 +35,6 @@ const Worker = () => {
   const [allJobs,           setAllJobs]          = useState([]);
   const [loadingJobs,       setLoadingJobs]      = useState(false);
   const [jobsError,         setJobsError]        = useState('');
-  const [workerProfile,     setWorkerProfile]    = useState(null);
   const [showApplyModal,    setShowApplyModal]   = useState(false);
   const [selectedJob,       setSelectedJob]      = useState(null);
   const [applyForm,         setApplyForm]        = useState(INITIAL_APPLY_FORM);
@@ -86,7 +85,6 @@ const Worker = () => {
 
   useEffect(() => {
     if (!user || user.role !== 'worker') {
-      setWorkerProfile(null);
       setApplications([]);
       return;
     }
@@ -95,8 +93,7 @@ const Worker = () => {
 
     const fetchProfile = async () => {
       try {
-        const data = await fetchWorkerProfile();
-        if (!ignore) setWorkerProfile(data);
+        await fetchWorkerProfile();
       } catch {}
     };
 
