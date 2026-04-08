@@ -33,12 +33,9 @@ const Worker = () => {
   const [locationFilter,    setLocationFilter]   = useState('');
   const [relevantJobs,      setRelevantJobs]     = useState([]);
   const [allJobs,           setAllJobs]          = useState([]);
-  const [workerSkills,      setWorkerSkills]     = useState([]);
   const [loadingJobs,       setLoadingJobs]      = useState(false);
   const [jobsError,         setJobsError]        = useState('');
   const [workerProfile,     setWorkerProfile]    = useState(null);
-
-  const [matchProfileOnly,  setMatchProfileOnly] = useState(false);
   const [showApplyModal,    setShowApplyModal]   = useState(false);
   const [selectedJob,       setSelectedJob]      = useState(null);
   const [applyForm,         setApplyForm]        = useState(INITIAL_APPLY_FORM);
@@ -77,7 +74,6 @@ const Worker = () => {
 
         setRelevantJobs((res.relevantJobs || []).map(mapJob));
         setAllJobs((res.allJobs || []).map(mapJob));
-        setWorkerSkills(res.workerSkills || []);
       } catch {
         setJobsError('Failed to load tasks. Please try again.');
       } finally { setLoadingJobs(false); }
@@ -91,7 +87,6 @@ const Worker = () => {
   useEffect(() => {
     if (!user || user.role !== 'worker') {
       setWorkerProfile(null);
-      setMatchProfileOnly(false);
       setApplications([]);
       return;
     }
@@ -102,9 +97,7 @@ const Worker = () => {
       try {
         const data = await fetchWorkerProfile();
         if (!ignore) setWorkerProfile(data);
-      } catch {
-        if (!ignore) setMatchProfileOnly(false);
-      }
+      } catch {}
     };
 
     fetchProfile();
@@ -411,7 +404,6 @@ const Worker = () => {
 
               <div className="space-y-4">
                 {filteredAllJobs.map((job) => {
-                  const alreadyApplied = appliedTaskIds.has(job.id);
                   return (
                     <div key={job.id} className={`${EMPHASIS_CARD_HOVER} p-5 opacity-75`}>
                       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
