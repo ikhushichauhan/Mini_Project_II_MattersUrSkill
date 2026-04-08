@@ -252,25 +252,38 @@ const getRelevantAndAllJobs = async (req, res, next) => {
     const workerProfile = await Worker.findOne({ user: req.user._id });
 
     if (!workerProfile) {
-      res.status(404);
-      return next(new Error('Worker profile not found'));
+      const filter = { status: 'open', isActive: true };
+      const allJobs = await Task.find(filter)
+        .populate('postedBy', 'name profileImage location ratings')
+        .sort({ createdAt: -1 });
+      
+      return res.json({
+        success: true,
+        relevantJobs: [],
+        allJobs: allJobs,
+        workerSkills: [],
+      });
     }
 
-    const workerSkills = (workerProfile.skills || []).map(s => s.toLowerCase());
+    const workerSkills = (workerProfile.skills || []).map(s => s.toLowerCase().trim());
     const filter = { status: 'open', isActive: true };
 
     const allJobs = await Task.find(filter)
       .populate('postedBy', 'name profileImage location ratings')
       .sort({ createdAt: -1 });
 
-    const relevantJobs = allJobs.filter(job => {
-      const jobSkills = (job.skillsRequired || []).map(s => s.toLowerCase());
-      return jobSkills.some(skill => workerSkills.includes(skill));
-    });
+    const relevantJobs = [];
+    const nonRelevantJobs = [];
 
-    const nonRelevantJobs = allJobs.filter(job => {
-      const jobSkills = (job.skillsRequired || []).map(s => s.toLowerCase());
-      return !jobSkills.some(skill => workerSkills.includes(skill));
+    allJobs.forEach(job => {
+      const jobSkills = (job.skillsRequired || []).map(s => s.toLowerCase().trim());
+      const hasMatch = jobSkills.some(skill => workerSkills.includes(skill));
+      
+      if (hasMatch) {
+        relevantJobs.push(job);
+      } else {
+        nonRelevantJobs.push(job);
+      }
     });
 
     res.json({
