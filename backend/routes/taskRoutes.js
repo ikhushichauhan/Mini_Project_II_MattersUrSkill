@@ -7,6 +7,7 @@ const {
   getMyPostedTasks,
   handleApplication,
   getAllOpenTasks,
+  getRelevantAndAllJobs,
   getTaskById,
   applyForTask,
   getMyApplications,
@@ -18,6 +19,13 @@ const { protect }          = require('../middleware/authMiddleware');
 const { authorizeRoles }   = require('../middleware/roleMiddleware');
 
 router.get('/', getAllOpenTasks);
+
+router.get(
+  '/relevant-and-all',
+  protect,
+  authorizeRoles('worker'),
+  getRelevantAndAllJobs
+);
 
 router.post(
   '/',

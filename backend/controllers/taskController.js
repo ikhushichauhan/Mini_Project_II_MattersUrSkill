@@ -246,6 +246,44 @@ const getAllOpenTasks = async (req, res, next) => {
   }
 };
 
+const getRelevantAndAllJobs = async (req, res, next) => {
+  try {
+    const Worker = require('../models/Worker');
+    const workerProfile = await Worker.findOne({ user: req.user._id });
+
+    if (!workerProfile) {
+      res.status(404);
+      return next(new Error('Worker profile not found'));
+    }
+
+    const workerSkills = (workerProfile.skills || []).map(s => s.toLowerCase());
+    const filter = { status: 'open', isActive: true };
+
+    const allJobs = await Task.find(filter)
+      .populate('postedBy', 'name profileImage location ratings')
+      .sort({ createdAt: -1 });
+
+    const relevantJobs = allJobs.filter(job => {
+      const jobSkills = (job.skillsRequired || []).map(s => s.toLowerCase());
+      return jobSkills.some(skill => workerSkills.includes(skill));
+    });
+
+    const nonRelevantJobs = allJobs.filter(job => {
+      const jobSkills = (job.skillsRequired || []).map(s => s.toLowerCase());
+      return !jobSkills.some(skill => workerSkills.includes(skill));
+    });
+
+    res.json({
+      success: true,
+      relevantJobs,
+      allJobs: nonRelevantJobs,
+      workerSkills: workerProfile.skills,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const getTaskById = async (req, res, next) => {
   try {
     const task = await Task.findById(req.params.id)
@@ -294,6 +332,23 @@ const applyForTask = async (req, res, next) => {
     if (task.postedBy.toString() === req.user._id.toString()) {
       res.status(400);
       return next(new Error('You cannot apply for your own task'));
+    }
+
+    const Worker = require('../models/Worker');
+    const workerProfile = await Worker.findOne({ user: req.user._id });
+
+    if (!workerProfile) {
+      res.status(404);
+      return next(new Error('Worker profile not found'));
+    }
+
+    const workerSkills = (workerProfile.skills || []).map(s => s.toLowerCase());
+    const jobSkills = (task.skillsRequired || []).map(s => s.toLowerCase());
+    const hasMatchingSkill = jobSkills.some(skill => workerSkills.includes(skill));
+
+    if (!hasMatchingSkill) {
+      res.status(403);
+      return next(new Error('You are not eligible for this job. Update your profile with required skills to apply.'));
     }
 
     const alreadyApplied = task.applications.some(
@@ -532,6 +587,7 @@ module.exports = {
   getMyPostedTasks,
   handleApplication,
   getAllOpenTasks,
+  getRelevantAndAllJobs,
   getTaskById,
   applyForTask,
   getMyApplications,

@@ -5,6 +5,11 @@ export const getOpenTasks = async (filters = {}) => {
   return data; // { success, total, page, pages, data: [...tasks] }
 };
 
+export const getRelevantAndAllJobs = async () => {
+  const { data } = await axiosInstance.get('/api/tasks/relevant-and-all');
+  return data; // { success, relevantJobs, allJobs, workerSkills }
+};
+
 export const getTaskById = async (taskId) => {
   const { data } = await axiosInstance.get(`/api/tasks/${taskId}`);
   return data; // { success, data: task }

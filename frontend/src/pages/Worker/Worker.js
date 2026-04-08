@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { getOpenTasks, applyForTask, getMyApplications } from '../../api/taskAPI';
+import { getRelevantAndAllJobs, applyForTask, getMyApplications } from '../../api/taskAPI';
 import { getWorkerProfile as fetchWorkerProfile } from '../../api/workerAPI';
 import { useAuth } from '../../context/AuthContext';
 
@@ -31,7 +31,9 @@ const Worker = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm,        setSearchTerm]       = useState('');
   const [locationFilter,    setLocationFilter]   = useState('');
-  const [jobs,              setJobs]             = useState([]);
+  const [relevantJobs,      setRelevantJobs]     = useState([]);
+  const [allJobs,           setAllJobs]          = useState([]);
+  const [workerSkills,      setWorkerSkills]     = useState([]);
   const [loadingJobs,       setLoadingJobs]      = useState(false);
   const [jobsError,         setJobsError]        = useState('');
   const [workerProfile,     setWorkerProfile]    = useState(null);
@@ -49,15 +51,12 @@ const Worker = () => {
 
 
   useEffect(() => {
-    const fetchTasks = async () => {
+    const fetchJobs = async () => {
       setLoadingJobs(true); setJobsError('');
       try {
-        const filters = {};
-        if (selectedCategory !== 'all') filters.category = selectedCategory;
-        if (locationFilter)             filters.city     = locationFilter;
-        if (searchTerm)                 filters.search   = searchTerm;
-        const res = await getOpenTasks(filters);
-        setJobs((res.data || []).map((t) => ({
+        const res = await getRelevantAndAllJobs();
+        
+        const mapJob = (t) => ({
           id:          t._id,
           title:       t.title,
           category:    t.category || 'other',
@@ -74,13 +73,20 @@ const Worker = () => {
             type:     t.budget?.type || 'fixed',
             currency: t.budget?.currency || 'INR',
           },
-        })));
+        });
+
+        setRelevantJobs((res.relevantJobs || []).map(mapJob));
+        setAllJobs((res.allJobs || []).map(mapJob));
+        setWorkerSkills(res.workerSkills || []);
       } catch {
         setJobsError('Failed to load tasks. Please try again.');
       } finally { setLoadingJobs(false); }
     };
-    fetchTasks();
-  }, [selectedCategory, locationFilter, searchTerm]);
+    
+    if (user?.role === 'worker') {
+      fetchJobs();
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!user || user.role !== 'worker') {
@@ -144,50 +150,23 @@ const Worker = () => {
     return () => clearTimeout(timeoutId);
   }, [applySuccess]);
 
-  const displayedJobs = useMemo(() => {
-    if (!matchProfileOnly || !workerProfile || !user) {
-      return jobs;
-    }
-
-    const normalizedSkills = new Set(
-      [...(user.skills || []), ...(workerProfile.skills || [])]
-        .filter(Boolean)
-        .map((skill) => String(skill).toLowerCase())
-    );
-
-    const userCity = String(user.location?.city || '').toLowerCase();
-    const workerCity = typeof workerProfile.location === 'string'
-      ? workerProfile.location.toLowerCase()
-      : '';
-    const preferredCity = userCity || workerCity;
-
-    const experiences = Array.isArray(workerProfile.workExperience)
-      ? workerProfile.workExperience
-      : [];
-
-    return jobs.filter((job) => {
-      const jobSkills = (job.skills || []).map((skill) => String(skill || '').toLowerCase());
-      const skillMatch = normalizedSkills.size === 0 || jobSkills.some((skill) => normalizedSkills.has(skill));
-
-      const jobLocation = String(job.location || '').toLowerCase();
-      const locationMatch =
-        !preferredCity ||
-        jobLocation.includes(preferredCity) ||
-        jobLocation.includes('remote');
-
-      const experienceMatch =
-        experiences.length === 0 ||
-        experiences.some((exp) => {
-          const role = String(exp.title || '').toLowerCase();
-          if (!role) return false;
-          const jobTitle = String(job.title || '').toLowerCase();
-          const jobDesc = String(job.description || '').toLowerCase();
-          return jobTitle.includes(role) || jobDesc.includes(role);
-        });
-
-      return skillMatch && locationMatch && experienceMatch;
+  const filteredRelevantJobs = useMemo(() => {
+    return relevantJobs.filter(job => {
+      const matchCategory = selectedCategory === 'all' || job.category === selectedCategory;
+      const matchSearch = !searchTerm || job.title.toLowerCase().includes(searchTerm.toLowerCase()) || job.skills.some(s => s.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchLocation = !locationFilter || job.location.toLowerCase().includes(locationFilter.toLowerCase());
+      return matchCategory && matchSearch && matchLocation;
     });
-  }, [jobs, matchProfileOnly, workerProfile, user]);
+  }, [relevantJobs, selectedCategory, searchTerm, locationFilter]);
+
+  const filteredAllJobs = useMemo(() => {
+    return allJobs.filter(job => {
+      const matchCategory = selectedCategory === 'all' || job.category === selectedCategory;
+      const matchSearch = !searchTerm || job.title.toLowerCase().includes(searchTerm.toLowerCase()) || job.skills.some(s => s.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchLocation = !locationFilter || job.location.toLowerCase().includes(locationFilter.toLowerCase());
+      return matchCategory && matchSearch && matchLocation;
+    });
+  }, [allJobs, selectedCategory, searchTerm, locationFilter]);
 
 
   const isWorker = user?.role === 'worker';
@@ -203,8 +182,12 @@ const Worker = () => {
 
 
 
-  const handleOpenApply = (job) => {
+  const handleOpenApply = (job, isEligible) => {
     if (!job || !isWorker) return;
+    if (!isEligible) {
+      setApplicationToast('You need to add the required skills to your profile before applying to this job.');
+      return;
+    }
     setSelectedJob(job);
     setApplyForm({
       ...INITIAL_APPLY_FORM,
@@ -371,16 +354,16 @@ const Worker = () => {
 
             <section>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="font-bold text-black text-base">Open Positions</h2>
-                {!loadingJobs && <span className="text-xs text-black">{matchProfileOnly ? `${displayedJobs.length} matched of ${jobs.length} total` : `${displayedJobs.length} result${displayedJobs.length !== 1 ? 's' : ''}`}</span>}
+                <h2 className="font-bold text-black text-base">Relevant Jobs</h2>
+                {!loadingJobs && <span className="text-xs text-black">{filteredRelevantJobs.length} job{filteredRelevantJobs.length !== 1 ? 's' : ''} matching your skills</span>}
               </div>
 
               {loadingJobs && <div className="flex items-center justify-center py-16"><div className="w-8 h-8 border-2 border-black border-t-transparent rounded-full animate-spin" /></div>}
-              {jobsError && !loadingJobs && <div className={`${EMPHASIS_CARD} p-5 text-center`}><p className="text-sm text-red-600 mb-3">{jobsError}</p><button onClick={() => setSelectedCategory(selectedCategory)} className="btn-outline text-xs">Retry</button></div>}
-              {!loadingJobs && !jobsError && displayedJobs.length === 0 && <div className={`${EMPHASIS_CARD} p-10 text-center`}><p className="font-semibold text-black text-sm mb-1">{matchProfileOnly ? 'No matched jobs yet' : 'No jobs found'}</p><p className="text-xs text-gray-600">{matchProfileOnly ? 'Add more skills or experience details, or turn off Smart Match to see all roles.' : 'Try adjusting your filters or check back later.'}</p>{matchProfileOnly && <button onClick={() => setMatchProfileOnly(false)} className="btn-outline text-xs mt-4">Clear Smart Match</button>}</div>}
+              {jobsError && !loadingJobs && <div className={`${EMPHASIS_CARD} p-5 text-center`}><p className="text-sm text-red-600 mb-3">{jobsError}</p><button onClick={() => window.location.reload()} className="btn-outline text-xs">Retry</button></div>}
+              {!loadingJobs && !jobsError && filteredRelevantJobs.length === 0 && <div className={`${EMPHASIS_CARD} p-10 text-center`}><p className="font-semibold text-black text-sm mb-1">No relevant jobs found</p><p className="text-xs text-gray-600">Add more skills to your profile to see jobs matching your expertise.</p></div>}
 
               <div className="space-y-4">
-                {displayedJobs.map((job) => {
+                {filteredRelevantJobs.map((job) => {
                   const alreadyApplied = appliedTaskIds.has(job.id);
                   return (
                     <div key={job.id} className={`${EMPHASIS_CARD_HOVER} p-5`}>
@@ -405,9 +388,56 @@ const Worker = () => {
                         </div>
                       )}
                       <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-gray-200 pt-3">
-                        <p className="text-xs text-black">{alreadyApplied ? 'You have already applied to this task.' : 'Match looks good? Share your availability and rate.'}</p>
+                        <p className="text-xs text-black">{alreadyApplied ? 'You have already applied to this task.' : 'You are eligible for this job!'}</p>
                         {isWorker ? (
-                          <button type="button" onClick={() => handleOpenApply(job)} disabled={alreadyApplied} className={`inline-flex items-center justify-center rounded-full px-5 py-2 text-[11px] font-semibold transition-colors ${alreadyApplied ? 'bg-gray-200 text-black cursor-not-allowed' : 'bg-black text-white hover:bg-gray-800'}`}>{alreadyApplied ? 'Applied' : 'Apply Now'}</button>
+                          <button type="button" onClick={() => handleOpenApply(job, true)} disabled={alreadyApplied} className={`inline-flex items-center justify-center rounded-full px-5 py-2 text-[11px] font-semibold transition-colors ${alreadyApplied ? 'bg-gray-200 text-black cursor-not-allowed' : 'bg-black text-white hover:bg-gray-800'}`}>{alreadyApplied ? 'Applied' : 'Apply Now'}</button>
+                        ) : (
+                          <a href="/login" className="inline-flex items-center justify-center rounded-full border border-black px-5 py-2 text-[11px] font-semibold text-black hover:text-black hover:border-black">Sign in to Apply</a>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+
+            <section className="mt-12">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-bold text-black text-base">All Jobs</h2>
+                {!loadingJobs && <span className="text-xs text-black">{filteredAllJobs.length} job{filteredAllJobs.length !== 1 ? 's' : ''}</span>}
+              </div>
+
+              {!loadingJobs && !jobsError && filteredAllJobs.length === 0 && <div className={`${EMPHASIS_CARD} p-10 text-center`}><p className="font-semibold text-black text-sm mb-1">No other jobs available</p><p className="text-xs text-gray-600">Check back later for more opportunities.</p></div>}
+
+              <div className="space-y-4">
+                {filteredAllJobs.map((job) => {
+                  const alreadyApplied = appliedTaskIds.has(job.id);
+                  return (
+                    <div key={job.id} className={`${EMPHASIS_CARD_HOVER} p-5 opacity-75`}>
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap mb-1">
+                            <h3 className="font-semibold text-black text-sm">{job.title}</h3>
+                            {job.verified && <span className="badge-active text-xs">Verified</span>}
+                          </div>
+                          <p className="text-xs text-gray-600">{job.provider} &bull; {job.location}</p>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <p className="text-sm font-bold text-gray-900">{job.payment}</p>
+                          <p className="text-xs text-gray-600 mt-0.5">{job.duration}</p>
+                        </div>
+                      </div>
+                      {job.description && <p className="text-xs text-black leading-relaxed mb-3 line-clamp-2">{job.description}</p>}
+                      {job.skills.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5">
+                          {job.skills.slice(0, 4).map((s) => <span key={s} className="badge-closed text-xs">{s}</span>)}
+                          {job.skills.length > 4 && <span className="badge-closed text-xs">+{job.skills.length - 4} more</span>}
+                        </div>
+                      )}
+                      <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-gray-200 pt-3">
+                        <p className="text-xs text-red-600">Update your profile with required skills to apply for this job.</p>
+                        {isWorker ? (
+                          <button type="button" onClick={() => handleOpenApply(job, false)} disabled className="inline-flex items-center justify-center rounded-full px-5 py-2 text-[11px] font-semibold bg-gray-300 text-gray-500 cursor-not-allowed">Not Eligible</button>
                         ) : (
                           <a href="/login" className="inline-flex items-center justify-center rounded-full border border-black px-5 py-2 text-[11px] font-semibold text-black hover:text-black hover:border-black">Sign in to Apply</a>
                         )}
