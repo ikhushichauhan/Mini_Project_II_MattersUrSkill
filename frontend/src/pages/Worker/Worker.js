@@ -89,8 +89,6 @@ const Worker = () => {
       return;
     }
 
-    let ignore = false;
-
     const fetchProfile = async () => {
       try {
         await fetchWorkerProfile();
@@ -98,10 +96,6 @@ const Worker = () => {
     };
 
     fetchProfile();
-
-    return () => {
-      ignore = true;
-    };
   }, [user]);
 
   useEffect(() => {
