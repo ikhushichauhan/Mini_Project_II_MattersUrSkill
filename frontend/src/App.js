@@ -11,7 +11,6 @@ import Worker from './pages/Worker/Worker';
 import Provider from './pages/Provider/Provider';
 import About from './pages/About/About';
 import Contact from './pages/Contact/Contact';
-import Admin from './pages/Admin/Admin';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import Profile from './pages/Profile/Profile';
 import Login from './pages/Login/Login';
