@@ -12,6 +12,7 @@ import Provider from './pages/Provider/Provider';
 import About from './pages/About/About';
 import Contact from './pages/Contact/Contact';
 import Admin from './pages/Admin/Admin';
+import AdminDashboard from './pages/Admin/AdminDashboard';
 import Profile from './pages/Profile/Profile';
 import Login from './pages/Login/Login';
 import JobDetails from './pages/JobDetails/JobDetails';
@@ -53,7 +54,7 @@ const PAGE_TITLES = {
 
 function AnimatedRoutes() {
   const location = useLocation();
-  const { isAuthenticated, isProvider, isWorker } = useAuth();
+  const { isAuthenticated, isProvider, isWorker, user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [displayLocation, setDisplayLocation] = useState(location);
 
@@ -99,7 +100,14 @@ function AnimatedRoutes() {
           />
           <Route path="/about" element={<PageWrapper><About /></PageWrapper>} />
           <Route path="/contact" element={<PageWrapper><Contact /></PageWrapper>} />
-          <Route path="/admin" element={<PageWrapper><Admin /></PageWrapper>} />
+          <Route
+            path="/admin"
+            element={
+              isAuthenticated && user?.role === 'admin'
+                ? <PageWrapper><AdminDashboard /></PageWrapper>
+                : <Navigate to="/" replace />
+            }
+          />
           <Route
             path="/profile"
             element={

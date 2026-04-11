@@ -90,6 +90,12 @@ const register = async (req, res, next) => {
 
     const userRole = ['worker', 'provider'].includes(role) ? role : 'user';
 
+    // Prevent admin role creation through public registration
+    if (role === 'admin') {
+      res.status(403);
+      return next(new Error('Admin accounts cannot be created through registration'));
+    }
+
     const userExists = await User.findOne({ email: cleanedEmail });
     if (userExists) {
       if (userExists.phoneVerified) {
@@ -183,6 +189,11 @@ const login = async (req, res, next) => {
     if (!user.isActive) {
       res.status(403);
       return next(new Error('Your account has been deactivated. Contact support.'));
+    }
+
+    if (user.isBlocked) {
+      res.status(403);
+      return next(new Error(`Your account has been blocked. Reason: ${user.blockedReason || 'Policy violation'}`));
     }
      console.log(req.body,"hello")
 

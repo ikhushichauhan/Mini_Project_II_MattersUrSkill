@@ -29,6 +29,11 @@ const protect = async (req, res, next) => {
       return next(new Error('Your account has been deactivated'));
     }
 
+    if (user.isBlocked) {
+      res.status(403);
+      return next(new Error('Your account has been blocked. Contact support.'));
+    }
+
     req.user = user;
     next();
   } catch (error) {

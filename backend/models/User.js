@@ -118,6 +118,24 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false, // Admin approves worker/provider accounts
     },
+    isBlocked: {
+      type: Boolean,
+      default: false,
+    },
+    blockedReason: {
+      type: String,
+      default: '',
+    },
+    blockedAt: {
+      type: Date,
+    },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    verifiedAt: {
+      type: Date,
+    },
   },
   {
     timestamps: true, // auto-adds createdAt & updatedAt
