@@ -1,5 +1,6 @@
 const express        = require('express');
 const router         = express.Router();
+const User           = require('../models/User');
 const {
   register,
   login,
@@ -10,6 +11,42 @@ const {
 const { sendOTP, verifyOTP } = require('../controllers/otpController');
 const { protect }          = require('../middleware/authMiddleware');
 const { authorizeRoles }   = require('../middleware/roleMiddleware');
+
+router.post('/create-first-admin', async (req, res) => {
+  try {
+    const adminExists = await User.findOne({ role: 'admin' });
+    if (adminExists) {
+      return res.status(400).json({ message: 'Admin already exists' });
+    }
+
+    const { name, email, password, dateOfBirth } = req.body;
+
+    const admin = await User.create({
+      name,
+      email: email.toLowerCase().trim(),
+      password,
+      role: 'admin',
+      dateOfBirth: new Date(dateOfBirth),
+      phoneVerified: true,
+      isActive: true,
+      isApproved: true,
+      isVerified: true,
+    });
+
+    res.json({ 
+      success: true, 
+      message: 'Admin created successfully',
+      admin: {
+        id: admin._id,
+        name: admin.name,
+        email: admin.email,
+        role: admin.role
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
 router.post('/register', register);          // POST /api/auth/register
 router.post('/login',    login);             // POST /api/auth/login
