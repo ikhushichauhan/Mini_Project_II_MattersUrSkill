@@ -4,19 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 export default function DebugAuth() {
   const { user, isAuthenticated, isAdmin } = useAuth();
   
-  const token = localStorage.getItem('token');
   const savedUser = localStorage.getItem('user');
-  
-  let decodedToken = null;
-  if (token) {
-    try {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      decodedToken = JSON.parse(window.atob(base64));
-    } catch (e) {
-      console.error('Failed to decode token:', e);
-    }
-  }
 
   return (
     <div style={{ 
