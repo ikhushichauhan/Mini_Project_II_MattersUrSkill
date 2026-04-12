@@ -14,9 +14,9 @@ const question = (query) => new Promise((resolve) => rl.question(query, resolve)
 const createAdmin = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI);
-    console.log('✅ Connected to MongoDB');
+    console.log('Connected to MongoDB');
 
-    console.log('\n🔐 Admin User Creation\n');
+    console.log('\nAdmin User Creation\n');
 
     const name = await question('Enter admin name: ');
     const email = await question('Enter admin email: ');
@@ -24,18 +24,18 @@ const createAdmin = async () => {
     const dateOfBirth = await question('Enter date of birth (YYYY-MM-DD): ');
 
     if (!name || !email || !password || !dateOfBirth) {
-      console.log('❌ All fields are required!');
+      console.log('All fields are required!');
       process.exit(1);
     }
 
     if (password.length < 6) {
-      console.log('❌ Password must be at least 6 characters!');
+      console.log('Password must be at least 6 characters!');
       process.exit(1);
     }
 
     const existingAdmin = await User.findOne({ email: email.toLowerCase().trim() });
     if (existingAdmin) {
-      console.log('❌ User with this email already exists!');
+      console.log('User with this email already exists!');
       process.exit(1);
     }
 
@@ -51,17 +51,17 @@ const createAdmin = async () => {
       isVerified: true,
     });
 
-    console.log('\n✅ Admin user created successfully!');
-    console.log('\n📋 Admin Details:');
+    console.log('\nAdmin user created successfully!');
+    console.log('\nAdmin Details:');
     console.log(`   Name: ${admin.name}`);
     console.log(`   Email: ${admin.email}`);
     console.log(`   Role: ${admin.role}`);
     console.log(`   ID: ${admin._id}`);
-    console.log('\n⚠️  Keep these credentials safe!\n');
+    console.log('\nKeep these credentials safe!\n');
 
     process.exit(0);
   } catch (error) {
-    console.error('❌ Error creating admin:', error.message);
+    console.error('Error creating admin:', error.message);
     process.exit(1);
   }
 };
