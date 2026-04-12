@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import * as adminAPI from '../../api/adminAPI';
+import { releasePayment } from '../../api/paymentAPI';
 
 export default function AdminDashboard() {
   const { user, isAuthenticated } = useAuth();
@@ -120,10 +121,11 @@ export default function AdminDashboard() {
     setTransactions(response.data);
   };
 
-  const handleReleasePayment = async (transactionId) => {
+  const handleReleasePayment = async (paymentId) => {
     const notes = prompt('Enter notes (optional):');
+    if (notes === null) return;
     try {
-      await adminAPI.updateTransactionStatus(transactionId, 'released', notes || '');
+      await releasePayment(paymentId);
       alert('Payment released successfully');
       loadTransactions();
     } catch (err) {
@@ -373,9 +375,10 @@ export default function AdminDashboard() {
                   >
                     <option value="">All Transactions</option>
                     <option value="pending">Pending</option>
-                    <option value="on-hold">On Hold</option>
+                    <option value="held">Held</option>
                     <option value="released">Released</option>
                     <option value="refunded">Refunded</option>
+                    <option value="failed">Failed</option>
                   </select>
                   <button onClick={loadTransactions} className="px-4 py-2 rounded-lg bg-white text-black font-medium hover:bg-gray-200">
                     Apply Filter
@@ -389,8 +392,10 @@ export default function AdminDashboard() {
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Provider</th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Worker</th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Amount</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Commission</th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Job</th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Status</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Confirmations</th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Date</th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Actions</th>
                     </tr>
@@ -401,18 +406,28 @@ export default function AdminDashboard() {
                         <td className="px-4 py-3 text-sm text-white font-medium">{txn.provider?.name || 'N/A'}</td>
                         <td className="px-4 py-3 text-sm text-gray-400">{txn.worker?.name || 'N/A'}</td>
                         <td className="px-4 py-3 text-sm text-white font-semibold">₹{txn.amount}</td>
+                        <td className="px-4 py-3 text-xs text-gray-400">₹{txn.platformCommission}</td>
                         <td className="px-4 py-3 text-xs text-gray-400">{txn.job?.title || 'N/A'}</td>
                         <td className="px-4 py-3">
                           <span className="px-2 py-1 text-xs font-semibold rounded-full" style={{ background: 'rgba(255,255,255,0.1)', color: '#fff' }}>
                             {txn.status}
                           </span>
                         </td>
+                        <td className="px-4 py-3 text-xs">
+                          <div className="space-y-1">
+                            <div className="text-gray-400">Provider: {txn.providerConfirmed ? '✓' : '✗'}</div>
+                            <div className="text-gray-400">Worker: {txn.workerConfirmed ? '✓' : '✗'}</div>
+                          </div>
+                        </td>
                         <td className="px-4 py-3 text-xs text-gray-500">{new Date(txn.createdAt).toLocaleDateString()}</td>
                         <td className="px-4 py-3">
-                          {txn.status === 'on-hold' && (
+                          {txn.status === 'held' && txn.providerConfirmed && txn.workerConfirmed && (
                             <button onClick={() => handleReleasePayment(txn._id)} className="px-3 py-1 text-xs font-medium rounded bg-white text-black hover:bg-gray-200">
                               Release
                             </button>
+                          )}
+                          {txn.status === 'held' && (!txn.providerConfirmed || !txn.workerConfirmed) && (
+                            <span className="text-xs text-gray-500">Awaiting confirmation</span>
                           )}
                         </td>
                       </tr>

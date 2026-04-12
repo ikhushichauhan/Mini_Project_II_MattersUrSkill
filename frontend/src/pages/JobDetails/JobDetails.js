@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getTaskById, updateTask, deleteTask, handleApplication } from '../../api/taskAPI';
+import { createPaymentOrder, verifyPayment, markJobCompleted, getPaymentsByJob } from '../../api/paymentAPI';
 import ChatWindow from '../../components/ChatWindow/ChatWindow';
 
 const EMPHASIS_CARD = 'rounded-lg border border-gray-300 bg-white shadow-md';
@@ -17,12 +18,20 @@ const JobDetails = () => {
   const [actionMessage, setActionMessage] = useState('');
   const [showChatWindow, setShowChatWindow] = useState(false);
   const [chatWorker, setChatWorker] = useState(null);
+  const [payment, setPayment] = useState(null);
+  const [paymentLoading, setPaymentLoading] = useState(false);
 
   useEffect(() => {
     const fetchJob = async () => {
       try {
         const res = await getTaskById(jobId);
         setJob(res.data);
+        if (res.data.status === 'in_progress' || res.data.status === 'completed') {
+          const paymentRes = await getPaymentsByJob(jobId);
+          if (paymentRes.data && paymentRes.data.length > 0) {
+            setPayment(paymentRes.data[0]);
+          }
+        }
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to load job details');
       } finally {
@@ -105,6 +114,72 @@ const JobDetails = () => {
   const handleCloseChat = () => {
     setShowChatWindow(false);
     setChatWorker(null);
+  };
+
+  const handlePayNow = async () => {
+    setPaymentLoading(true);
+    setActionMessage('');
+    try {
+      const orderRes = await createPaymentOrder(jobId);
+      const options = {
+        key: process.env.REACT_APP_RAZORPAY_KEY_ID,
+        amount: orderRes.data.amount,
+        currency: orderRes.data.currency,
+        name: 'MattersUrSkill',
+        description: job.title,
+        order_id: orderRes.data.razorpayOrderId,
+        handler: async (response) => {
+          try {
+            await verifyPayment({
+              jobId,
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
+            });
+            setActionMessage('Payment successful! Amount is held in escrow.');
+            const paymentRes = await getPaymentsByJob(jobId);
+            if (paymentRes.data && paymentRes.data.length > 0) {
+              setPayment(paymentRes.data[0]);
+            }
+          } catch (err) {
+            setActionMessage(err.response?.data?.message || 'Payment verification failed');
+          } finally {
+            setPaymentLoading(false);
+          }
+        },
+        prefill: {
+          name: user?.name,
+          email: user?.email,
+        },
+        theme: { color: '#000000' },
+      };
+      const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', () => {
+        setActionMessage('Payment failed. Please try again.');
+        setPaymentLoading(false);
+      });
+      rzp.open();
+    } catch (err) {
+      setActionMessage(err.response?.data?.message || 'Failed to initiate payment');
+      setPaymentLoading(false);
+    }
+  };
+
+  const handleMarkCompleted = async () => {
+    setPaymentLoading(true);
+    setActionMessage('');
+    try {
+      await markJobCompleted(jobId);
+      const paymentRes = await getPaymentsByJob(jobId);
+      if (paymentRes.data && paymentRes.data.length > 0) {
+        setPayment(paymentRes.data[0]);
+      }
+      setActionMessage('Job marked as completed. Waiting for confirmation.');
+    } catch (err) {
+      setActionMessage(err.response?.data?.message || 'Failed to mark as completed');
+    } finally {
+      setPaymentLoading(false);
+    }
   };
 
   if (loading) {
@@ -330,7 +405,49 @@ const JobDetails = () => {
                     <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Type</p>
                     <p className="text-sm text-black capitalize">{job.budget?.type || 'Fixed'}</p>
                   </div>
+                  {payment && (
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Payment Status</p>
+                      <span className={`badge-${payment.status === 'held' ? 'brand' : payment.status === 'released' ? 'active' : 'pending'} text-xs`}>
+                        {payment.status}
+                      </span>
+                    </div>
+                  )}
                 </div>
+                {isOwner && isProvider && job.status === 'in_progress' && !payment && (
+                  <button
+                    onClick={handlePayNow}
+                    disabled={paymentLoading}
+                    className="mt-4 w-full px-4 py-2 text-sm font-medium bg-black text-white rounded-md hover:bg-gray-900 transition-colors"
+                  >
+                    {paymentLoading ? 'Processing...' : 'Pay Now'}
+                  </button>
+                )}
+                {payment && payment.status === 'held' && (
+                  <div className="mt-4 space-y-2">
+                    {isOwner && isProvider && !payment.providerConfirmed && (
+                      <button
+                        onClick={handleMarkCompleted}
+                        disabled={paymentLoading}
+                        className="w-full px-4 py-2 text-sm font-medium bg-black text-white rounded-md hover:bg-gray-900 transition-colors"
+                      >
+                        {paymentLoading ? 'Processing...' : 'Mark as Completed'}
+                      </button>
+                    )}
+                    {!isOwner && !payment.workerConfirmed && (
+                      <button
+                        onClick={handleMarkCompleted}
+                        disabled={paymentLoading}
+                        className="w-full px-4 py-2 text-sm font-medium bg-black text-white rounded-md hover:bg-gray-900 transition-colors"
+                      >
+                        {paymentLoading ? 'Processing...' : 'Mark as Completed'}
+                      </button>
+                    )}
+                    {payment.providerConfirmed && payment.workerConfirmed && (
+                      <p className="text-xs text-gray-600 text-center">Waiting for admin to release payment</p>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
