@@ -183,19 +183,23 @@ export default function AdminDashboard() {
             <h2 className="text-lg font-bold text-black">Admin Panel</h2>
             <p className="text-sm text-gray-600 mt-1">MattersUrSkills</p>
           </div>
-          <nav className="p-4 space-y-2">
-            {navItems.map(({ key, label }) => (
-              <button
-                key={key}
-                onClick={() => setActiveTab(key)}
-                className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                  activeTab === key
-                    ? 'bg-black text-white'
-                    : 'text-black hover:bg-gray-100'
-                }`}
-              >
-                {label}
-              </button>
+          <nav className="p-4 space-y-1">
+            {navItems.map(({ key, label }, index) => (
+              <div key={key}>
+                <button
+                  onClick={() => setActiveTab(key)}
+                  className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                    activeTab === key
+                      ? 'bg-black text-white'
+                      : 'text-black hover:bg-gray-100'
+                  }`}
+                >
+                  {label}
+                </button>
+                {index < navItems.length - 1 && (
+                  <div className="my-1 border-b border-gray-300"></div>
+                )}
+              </div>
             ))}
           </nav>
           <div className="p-4 border-t mt-auto" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>

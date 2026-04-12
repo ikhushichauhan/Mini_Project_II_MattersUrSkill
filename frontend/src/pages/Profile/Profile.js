@@ -97,7 +97,7 @@ const buildWorkerPayload = (form) => {
 };
 
 const SectionCard = ({ title, action, children }) => (
-  <section className="rounded-md border overflow-hidden shadow-lg" style={{ background: 'rgba(255, 255, 255, 0.1)', backdropFilter: 'blur(10px)', borderColor: '#ffffff' }}>
+  <section className="rounded-md border overflow-hidden shadow-lg" style={{ background: 'rgba(255, 255, 255, 0.1)', backdropFilter: 'blur(10px)', borderColor: user?.role === 'admin' ? '#9ca3af' : '#ffffff' }}>
     <header className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'rgba(255, 255, 255, 0.2)', background: 'rgba(255, 255, 255, 0.05)' }}>
       <h2 className="text-sm uppercase tracking-wider font-bold" style={{ color: '#ffffff' }}>{title}</h2>
       {action}
