@@ -18,7 +18,7 @@ import JobDetails from './pages/JobDetails/JobDetails';
 import WorkHistory from './pages/WorkHistory/WorkHistory';
 import ApplicantsDetails from './pages/ApplicantsDetails/ApplicantsDetails';
 import WorkerProfile from './pages/WorkerProfile/WorkerProfile';
-import DebugAuth from './components/DebugAuth/DebugAuth';
+
 import './App.css';
 import { useAuth } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
@@ -163,7 +163,6 @@ function App() {
         <div className="min-h-screen bg-surface flex flex-col">
           <Navbar />
           <ScrollToTop />
-          <DebugAuth />
           <main className="flex-1">
             <AnimatedRoutes />
           </main>

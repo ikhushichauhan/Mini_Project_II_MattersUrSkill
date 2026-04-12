@@ -445,16 +445,18 @@ const Profile = () => {
                 <p className="text-sm mt-1 truncate" style={{ color: '#000000' }}>{user.email}</p>
                 <div className="mt-3 flex items-center gap-3">
                   <span className="text-xs font-semibold capitalize" style={{ color: '#000000' }}>{roleLabel}</span>
-                  <span
-                    className={`text-xs font-semibold px-2.5 py-1 rounded-full border`}
-                    style={{
-                      color: formData.isAvailable ? '#ffffff' : '#000000',
-                      borderColor: '#000000',
-                      background: formData.isAvailable ? 'var(--bg-primary)' : '#fbbf24'
-                    }}
-                  >
-                    {availabilityText}
-                  </span>
+                  {user.role !== 'admin' && (
+                    <span
+                      className={`text-xs font-semibold px-2.5 py-1 rounded-full border`}
+                      style={{
+                        color: formData.isAvailable ? '#ffffff' : '#000000',
+                        borderColor: '#000000',
+                        background: formData.isAvailable ? 'var(--bg-primary)' : '#fbbf24'
+                      }}
+                    >
+                      {availabilityText}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -466,7 +468,7 @@ const Profile = () => {
                       setSaveMsg('');
                     }}
                     className="px-4 py-2 text-sm font-medium border rounded-md transition-colors"
-                    style={{ borderColor: '#000000', color: '#000000', background: 'transparent' }}
+                    style={{ borderColor: '#000000', color: '#000000', background: 'transparent', display: user.role === 'admin' ? 'none' : 'block' }}
                   >
                     Edit Profile
                   </button>
@@ -565,7 +567,9 @@ const Profile = () => {
                   </FieldRow>
 
                   <FieldRow label="Skills">
-                    {editMode ? (
+                    {user.role === 'admin' ? (
+                      <span style={{ color: '#ffffff' }}>N/A</span>
+                    ) : editMode ? (
                       <div>
                         <input
                           value={formData.skills}
@@ -819,35 +823,37 @@ const Profile = () => {
             </div>
 
             <div className="space-y-6">
-              <motion.div variants={cardVariants}>
-                <SectionCard title="Work Information">
-                  <FieldRow label="Availability Status">
-                    {editMode ? (
-                      <button
-                        type="button"
-                        onClick={() => handleInputChange('isAvailable', !formData.isAvailable)}
-                        className={`inline-flex items-center rounded-lg px-3 py-2 text-xs font-semibold border transition-colors ${
-                          formData.isAvailable
-                            ? 'text-emerald-300 border-emerald-500/30 bg-emerald-500/10'
-                            : 'text-amber-300 border-amber-500/30 bg-amber-500/10'
-                        }`}
-                      >
-                        {availabilityText}
-                      </button>
-                    ) : (
-                      <span style={{ color: '#ffffff' }}>{availabilityText}</span>
-                    )}
-                  </FieldRow>
+              {user.role !== 'admin' && (
+                <motion.div variants={cardVariants}>
+                  <SectionCard title="Work Information">
+                    <FieldRow label="Availability Status">
+                      {editMode ? (
+                        <button
+                          type="button"
+                          onClick={() => handleInputChange('isAvailable', !formData.isAvailable)}
+                          className={`inline-flex items-center rounded-lg px-3 py-2 text-xs font-semibold border transition-colors ${
+                            formData.isAvailable
+                              ? 'text-emerald-300 border-emerald-500/30 bg-emerald-500/10'
+                              : 'text-amber-300 border-amber-500/30 bg-amber-500/10'
+                          }`}
+                        >
+                          {availabilityText}
+                        </button>
+                      ) : (
+                        <span style={{ color: '#ffffff' }}>{availabilityText}</span>
+                      )}
+                    </FieldRow>
 
-                  <FieldRow label="Rating">
-                    <span className="font-semibold" style={{ color: '#ffffff' }}>{rating.toFixed(1)} / 5</span>
-                  </FieldRow>
+                    <FieldRow label="Rating">
+                      <span className="font-semibold" style={{ color: '#ffffff' }}>{rating.toFixed(1)} / 5</span>
+                    </FieldRow>
 
-                  <FieldRow label="Completed Jobs Count" last>
-                    <span className="font-semibold" style={{ color: '#ffffff' }}>{completedJobs}</span>
-                  </FieldRow>
-                </SectionCard>
-              </motion.div>
+                    <FieldRow label="Completed Jobs Count" last>
+                      <span className="font-semibold" style={{ color: '#ffffff' }}>{completedJobs}</span>
+                    </FieldRow>
+                  </SectionCard>
+                </motion.div>
+              )}
 
               <motion.div variants={cardVariants}>
                 <SectionCard title="Contact">

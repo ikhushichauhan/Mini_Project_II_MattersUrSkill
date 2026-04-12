@@ -40,7 +40,6 @@ const Navbar = () => {
 
   if (isAdmin) {
     mainLinks = [
-      { path: '/', label: 'Home' },
       { path: '/admin', label: 'Admin Dashboard' },
     ];
   } else if (isWorker) {
