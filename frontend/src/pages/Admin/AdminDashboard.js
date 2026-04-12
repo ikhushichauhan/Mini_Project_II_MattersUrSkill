@@ -180,8 +180,8 @@ export default function AdminDashboard() {
       <div className="flex">
         <aside className="w-64 min-h-screen border-r" style={{ background: 'var(--card-bg)', borderColor: 'rgba(255,255,255,0.1)' }}>
           <div className="p-6 border-b" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
-            <h2 className="text-lg font-bold text-white">Admin Panel</h2>
-            <p className="text-sm text-gray-400 mt-1">MattersUrSkills</p>
+            <h2 className="text-lg font-bold text-black">Admin Panel</h2>
+            <p className="text-sm text-gray-600 mt-1">MattersUrSkills</p>
           </div>
           <nav className="p-4 space-y-2">
             {navItems.map(({ key, label }) => (
@@ -190,8 +190,8 @@ export default function AdminDashboard() {
                 onClick={() => setActiveTab(key)}
                 className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                   activeTab === key
-                    ? 'bg-white text-black'
-                    : 'text-white hover:bg-white/10'
+                    ? 'bg-black text-white'
+                    : 'text-black hover:bg-gray-100'
                 }`}
               >
                 {label}
@@ -199,8 +199,8 @@ export default function AdminDashboard() {
             ))}
           </nav>
           <div className="p-4 border-t mt-auto" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
-            <p className="text-xs text-gray-400">Logged in as:</p>
-            <p className="text-sm text-white font-medium truncate">{user?.name}</p>
+            <p className="text-xs text-gray-600">Logged in as:</p>
+            <p className="text-sm text-black font-medium truncate">{user?.name}</p>
           </div>
         </aside>
 
@@ -220,7 +220,7 @@ export default function AdminDashboard() {
 
           {activeTab === 'dashboard' && stats && (
             <div>
-              <h1 className="text-3xl font-bold text-white mb-8">Dashboard Overview</h1>
+              <h1 className="text-xl font-bold text-white mb-6">Dashboard Overview</h1>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <div className="p-6 rounded-lg border" style={{ background: 'var(--card-bg)', borderColor: 'rgba(255,255,255,0.1)' }}>
                   <p className="text-sm text-gray-400 mb-2">Total Users</p>
@@ -248,7 +248,7 @@ export default function AdminDashboard() {
 
           {activeTab === 'users' && (
             <div>
-              <h1 className="text-3xl font-bold text-white mb-8">User Management</h1>
+              <h1 className="text-xl font-bold text-white mb-6">User Management</h1>
               <div className="mb-6 p-4 rounded-lg border" style={{ background: 'var(--card-bg)', borderColor: 'rgba(255,255,255,0.1)' }}>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <input
@@ -358,7 +358,7 @@ export default function AdminDashboard() {
 
           {activeTab === 'transactions' && (
             <div>
-              <h1 className="text-3xl font-bold text-white mb-8">Transaction Management</h1>
+              <h1 className="text-xl font-bold text-white mb-6">Transaction Management</h1>
               <div className="mb-6 p-4 rounded-lg border" style={{ background: 'var(--card-bg)', borderColor: 'rgba(255,255,255,0.1)' }}>
                 <div className="flex gap-4">
                   <select
@@ -424,7 +424,7 @@ export default function AdminDashboard() {
 
           {activeTab === 'reports' && (
             <div>
-              <h1 className="text-3xl font-bold text-white mb-8">Reports Management</h1>
+              <h1 className="text-xl font-bold text-white mb-6">Reports Management</h1>
               <div className="mb-6 p-4 rounded-lg border" style={{ background: 'var(--card-bg)', borderColor: 'rgba(255,255,255,0.1)' }}>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <select
@@ -507,7 +507,7 @@ export default function AdminDashboard() {
 
           {activeTab === 'jobs' && (
             <div>
-              <h1 className="text-3xl font-bold text-white mb-8">Job Management</h1>
+              <h1 className="text-xl font-bold text-white mb-6">Job Management</h1>
               <div className="rounded-lg border overflow-hidden" style={{ background: 'var(--card-bg)', borderColor: 'rgba(255,255,255,0.1)' }}>
                 <table className="w-full">
                   <thead className="border-b" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>

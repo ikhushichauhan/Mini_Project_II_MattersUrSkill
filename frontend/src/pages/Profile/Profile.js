@@ -550,66 +550,68 @@ const Profile = () => {
                     )}
                   </FieldRow>
 
-                  <FieldRow label="Full Address">
-                    {editMode ? (
-                      <div className="space-y-2">
-                        <input
-                          value={formData.pincode}
-                          onChange={(e) => handleInputChange('pincode', e.target.value)}
-                          className="input-field text-black placeholder-gray-500"
-                          placeholder="Pincode"
-                        />
-                        <p className="text-xs text-gray-500">Preview: {fullAddress}</p>
-                      </div>
-                    ) : (
-                      <span style={{ color: '#ffffff' }}>{fullAddress}</span>
-                    )}
-                  </FieldRow>
-
-                  <FieldRow label="Skills">
-                    {user.role === 'admin' ? (
-                      <span style={{ color: '#ffffff' }}>N/A</span>
-                    ) : editMode ? (
-                      <div>
-                        <input
-                          value={formData.skills}
-                          onChange={(e) => handleInputChange('skills', e.target.value)}
-                          className="input-field text-black placeholder-gray-500"
-                          placeholder="Plumbing, Carpentry, Electrical"
-                        />
-                        <p className="text-xs text-gray-500 mt-1.5">Use commas to separate each skill.</p>
-                      </div>
-                    ) : (
-                      <div className="flex flex-wrap gap-2">
-                        {skillsList.length > 0 ? (
-                          skillsList.map((skill) => (
-                            <span
-                              key={skill}
-                              className="px-3 py-1 rounded-full border border-gray-300 bg-gray-100 text-gray-700 text-xs font-semibold"
-                            >
-                              {skill}
-                            </span>
-                          ))
+                  {user.role !== 'admin' && (
+                    <>
+                      <FieldRow label="Full Address">
+                        {editMode ? (
+                          <div className="space-y-2">
+                            <input
+                              value={formData.pincode}
+                              onChange={(e) => handleInputChange('pincode', e.target.value)}
+                              className="input-field text-black placeholder-gray-500"
+                              placeholder="Pincode"
+                            />
+                            <p className="text-xs text-gray-500">Preview: {fullAddress}</p>
+                          </div>
                         ) : (
-                          <span className="text-gray-500">Not added</span>
+                          <span style={{ color: '#ffffff' }}>{fullAddress}</span>
                         )}
-                      </div>
-                    )}
-                  </FieldRow>
+                      </FieldRow>
 
-                  <FieldRow label="Short Bio / About" last>
-                    {editMode ? (
-                      <textarea
-                        rows={4}
-                        value={formData.bio}
-                        onChange={(e) => handleInputChange('bio', e.target.value)}
-                        className="input-field resize-none text-black placeholder-gray-500"
-                        placeholder="Write a short professional summary"
-                      />
-                    ) : (
-                      <p className="leading-relaxed" style={{ color: '#ffffff' }}>{formData.bio || 'Not added'}</p>
-                    )}
-                  </FieldRow>
+                      <FieldRow label="Skills">
+                        {editMode ? (
+                          <div>
+                            <input
+                              value={formData.skills}
+                              onChange={(e) => handleInputChange('skills', e.target.value)}
+                              className="input-field text-black placeholder-gray-500"
+                              placeholder="Plumbing, Carpentry, Electrical"
+                            />
+                            <p className="text-xs text-gray-500 mt-1.5">Use commas to separate each skill.</p>
+                          </div>
+                        ) : (
+                          <div className="flex flex-wrap gap-2">
+                            {skillsList.length > 0 ? (
+                              skillsList.map((skill) => (
+                                <span
+                                  key={skill}
+                                  className="px-3 py-1 rounded-full border border-gray-300 bg-gray-100 text-gray-700 text-xs font-semibold"
+                                >
+                                  {skill}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-gray-500">Not added</span>
+                            )}
+                          </div>
+                        )}
+                      </FieldRow>
+
+                      <FieldRow label="Short Bio / About" last>
+                        {editMode ? (
+                          <textarea
+                            rows={4}
+                            value={formData.bio}
+                            onChange={(e) => handleInputChange('bio', e.target.value)}
+                            className="input-field resize-none text-black placeholder-gray-500"
+                            placeholder="Write a short professional summary"
+                          />
+                        ) : (
+                          <p className="leading-relaxed" style={{ color: '#ffffff' }}>{formData.bio || 'Not added'}</p>
+                        )}
+                      </FieldRow>
+                    </>
+                  )}
                   
                   {user.role === 'provider' && (
                     <div className="pt-4 border-t border-gray-200">
