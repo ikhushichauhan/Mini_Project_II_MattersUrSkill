@@ -74,6 +74,7 @@ app.use('/api/admin',     require('./routes/adminRoutes'));
 app.use('/api/jobs',      require('./routes/jobRoutes'));
 app.use('/api/chat',      require('./routes/chatRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
+app.use('/api/payments',  require('./routes/paymentRoutes'));
 
 app.set('io', io);
 
