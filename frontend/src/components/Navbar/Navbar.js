@@ -9,7 +9,7 @@ const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, isAuthenticated, isWorker, isProvider, logout } = useAuth();
+  const { user, isAuthenticated, isWorker, isProvider, isAdmin, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
@@ -38,7 +38,12 @@ const Navbar = () => {
 
   let mainLinks = [];
 
-  if (isWorker) {
+  if (isAdmin) {
+    mainLinks = [
+      { path: '/', label: 'Home' },
+      { path: '/admin', label: 'Admin Dashboard' },
+    ];
+  } else if (isWorker) {
     mainLinks = [
       { path: '/', label: 'Home' },
       { path: '/worker', label: 'Find Work' },
