@@ -91,22 +91,22 @@ const userSchema = new mongoose.Schema(
     },
 
     otp: {
-      code: {
+      otpCode: {
         type:   String,
-        select: false,  // SHA-256 hash of the 6-digit OTP
+        select: false,
       },
       expiresAt: {
         type:   Date,
-        select: false,  // OTP_EXPIRY_MINUTES from creation
+        select: false,
       },
       lastRequestedAt: {
         type:   Date,
-        select: false,  // used for rate limiting (1 per 60 s)
+        select: false,
       },
       attempts: {
         type:    Number,
         default: 0,
-        select:  false, // increment on each wrong guess; void after OTP_MAX_ATTEMPTS
+        select:  false,
       },
     },
 

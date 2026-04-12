@@ -49,7 +49,7 @@ const issueVerificationOtp = async (user) => {
   const hashedOtp = hashOTP(otp);
 
   user.otp = {
-    code:            hashedOtp,
+    otpCode:         hashedOtp,
     expiresAt:       new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000),
     lastRequestedAt: new Date(),
     attempts:        0,

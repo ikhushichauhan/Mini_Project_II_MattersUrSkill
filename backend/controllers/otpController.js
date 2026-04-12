@@ -3,9 +3,9 @@ const User             = require('../models/User');
 const generateToken    = require('../utils/generateToken');
 const { sendOTPEmail } = require('../utils/emailService');
 
-const OTP_EXPIRY_MINUTES     = 5;   // OTP valid for 5 minutes
-const OTP_RATE_LIMIT_SECONDS = 60;  // Minimum gap between OTP requests
-const OTP_MAX_ATTEMPTS       = 5;   // Max wrong guesses before OTP is voided
+const OTP_EXPIRY_MINUTES     = 5;
+const OTP_RATE_LIMIT_SECONDS = 60;
+const OTP_MAX_ATTEMPTS       = 5;
 
 const generateOTP = () =>
   Math.floor(100000 + Math.random() * 900000).toString();
@@ -35,7 +35,7 @@ const sendOTP = async (req, res, next) => {
     }
 
     const user = await User.findOne({ email: cleanedEmail }).select(
-      '+otp.code +otp.expiresAt +otp.lastRequestedAt +otp.attempts'
+      '+otp.otpCode +otp.expiresAt +otp.lastRequestedAt +otp.attempts'
     );
 
     if (!user) {
@@ -70,7 +70,7 @@ const sendOTP = async (req, res, next) => {
     const hashedOtp = hashOTP(otp);
 
     user.otp = {
-      code:            hashedOtp,
+      otpCode:         hashedOtp,
       expiresAt:       new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000),
       lastRequestedAt: new Date(),
       attempts:        0,
@@ -105,7 +105,7 @@ const verifyOTP = async (req, res, next) => {
     const cleanedEmail = String(email).toLowerCase().trim();
 
     const user = await User.findOne({ email: cleanedEmail }).select(
-      '+otp.code +otp.expiresAt +otp.lastRequestedAt +otp.attempts'
+      '+otp.otpCode +otp.expiresAt +otp.lastRequestedAt +otp.attempts'
     );
 
     if (!user) {
@@ -118,13 +118,13 @@ const verifyOTP = async (req, res, next) => {
       return next(new Error('Your account has been deactivated. Contact support.'));
     }
 
-    if (!user.otp || !user.otp.code) {
+    if (!user.otp || !user.otp.otpCode) {
       res.status(400);
       return next(new Error('No OTP found. Please request a new verification email first.'));
     }
 
     if (user.otp.attempts >= OTP_MAX_ATTEMPTS) {
-      user.otp.code      = undefined;
+      user.otp.otpCode   = undefined;
       user.otp.expiresAt = undefined;
       await user.save({ validateBeforeSave: false });
       res.status(429);
@@ -141,8 +141,8 @@ const verifyOTP = async (req, res, next) => {
     const hashedInput = hashOTP(String(otp));
     const isMatch =
       crypto.timingSafeEqual(
-        Buffer.from(hashedInput,    'hex'),
-        Buffer.from(user.otp.code,  'hex')
+        Buffer.from(hashedInput,        'hex'),
+        Buffer.from(user.otp.otpCode,   'hex')
       );
 
     if (!isMatch) {
@@ -157,10 +157,10 @@ const verifyOTP = async (req, res, next) => {
       );
     }
 
-    user.phoneVerified  = true;
-    user.otp.code       = undefined;
-    user.otp.expiresAt  = undefined;
-    user.otp.attempts   = 0;
+    user.phoneVerified   = true;
+    user.otp.otpCode     = undefined;
+    user.otp.expiresAt   = undefined;
+    user.otp.attempts    = 0;
     await user.save({ validateBeforeSave: false });
 
     res.status(200).json({
