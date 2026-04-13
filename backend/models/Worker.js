@@ -106,6 +106,11 @@ const workerSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    razorpayAccountId: {
+      type: String,
+      trim: true,
+      default: '',
+    },
   },
   { timestamps: true }
 );

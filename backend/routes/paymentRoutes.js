@@ -12,7 +12,8 @@ const { authorizeRoles } = require('../middleware/roleMiddleware');
 
 router.post('/create-order', protect, createOrder);
 router.post('/verify', protect, verifyPayment);
-router.put('/job/:jobId/complete', protect, markJobCompleted);
+router.post('/mark-completed', protect, markJobCompleted);
+router.put('/job/:jobId/complete', protect, markJobCompleted); // Keep old one for compatibility if needed
 router.put('/:paymentId/release', protect, authorizeRoles('admin'), releasePayment);
 router.get('/job/:jobId', protect, getPaymentsByJob);
 

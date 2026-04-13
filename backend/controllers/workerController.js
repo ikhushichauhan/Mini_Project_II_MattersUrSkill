@@ -100,6 +100,7 @@ const updateWorkerProfile = async (req, res) => {
       isGraduate,
       cv,
       workExperience,
+      razorpayAccountId,
     } = req.body;
 
     if (skills !== undefined) worker.skills = skills;
@@ -108,6 +109,7 @@ const updateWorkerProfile = async (req, res) => {
     if (availability !== undefined) worker.availability = availability;
     if (location !== undefined) worker.location = location;
     if (portfolio !== undefined) worker.portfolio = portfolio;
+    if (razorpayAccountId !== undefined) worker.razorpayAccountId = razorpayAccountId;
 
     if (typeof isGraduate === 'boolean') {
       worker.isGraduate = isGraduate;

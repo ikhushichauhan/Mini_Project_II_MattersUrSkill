@@ -23,7 +23,7 @@ const io = new Server(server, {
       if (!origin) return callback(null, true);
       if (origin.endsWith('.vercel.app')) return callback(null, true);
       if (origin.endsWith('.eu.cc')) return callback(null, true);
-      const allowedOrigins = (process.env.CLIvENT_URL || 'http://localhost:3000')
+      const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:3000')
         .split(',').map(o => o.trim());
       allowedOrigins.push('http://localhost:3000', 'http://127.0.0.1:3000');
       if (allowedOrigins.includes(origin)) return callback(null, true);

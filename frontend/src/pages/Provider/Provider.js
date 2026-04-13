@@ -14,7 +14,7 @@ const CATEGORIES = [
 const STATUS_MAP = {
   open:       'badge-active',
   closed:     'badge-closed',
-  in_progress:'badge-brand',
+  'in-progress':'badge-brand',
   pending:    'badge-pending',
 };
 

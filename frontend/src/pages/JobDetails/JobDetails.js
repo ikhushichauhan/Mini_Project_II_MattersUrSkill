@@ -26,7 +26,7 @@ const JobDetails = () => {
       try {
         const res = await getTaskById(jobId);
         setJob(res.data);
-        if (res.data.status === 'in_progress' || res.data.status === 'completed') {
+        if (res.data.status === 'in-progress' || res.data.status === 'completed') {
           const paymentRes = await getPaymentsByJob(jobId);
           if (paymentRes.data && paymentRes.data.length > 0) {
             setPayment(paymentRes.data[0]);
@@ -78,6 +78,7 @@ const JobDetails = () => {
         applications: prev.applications.map((app) =>
           app._id === applicationId ? { ...app, status: 'accepted' } : { ...app, status: app.status === 'pending' ? 'rejected' : app.status }
         ),
+        status: 'in-progress',
       }));
       setActionMessage('Application accepted and worker assigned');
     } catch (err) {
@@ -280,7 +281,7 @@ const JobDetails = () => {
                     >
                       <option value="open">Open</option>
                       <option value="closed">Closed</option>
-                      <option value="in_progress">In Progress</option>
+                      <option value="in-progress">In Progress</option>
                       <option value="completed">Completed</option>
                     </select>
                     <button
@@ -414,7 +415,7 @@ const JobDetails = () => {
                     </div>
                   )}
                 </div>
-                {isOwner && isProvider && job.status === 'in_progress' && !payment && (
+                {isOwner && isProvider && job.status === 'in-progress' && (!payment || payment.status === 'pending') && (
                   <button
                     onClick={handlePayNow}
                     disabled={paymentLoading}
@@ -454,7 +455,7 @@ const JobDetails = () => {
             <div className={EMPHASIS_CARD}>
               <div className="p-6">
                 <h3 className="font-bold text-black text-base mb-4">Status</h3>
-                <span className={`badge-${job.status === 'open' ? 'active' : job.status === 'in_progress' ? 'brand' : 'closed'} text-sm`} style={{ color: '#000000' }}>
+                <span className={`badge-${job.status === 'open' ? 'active' : job.status === 'in-progress' ? 'brand' : 'closed'} text-sm`} style={{ color: '#000000' }}>
                   {job.status}
                 </span>
               </div>

@@ -67,6 +67,7 @@ const buildCareerFormData = (workerProfile) => ({
         description: exp.description || '',
       }))
     : [],
+  razorpayAccountId: workerProfile?.razorpayAccountId || '',
 });
 
 const parseSkillsList = (skills) =>
@@ -93,10 +94,11 @@ const buildWorkerPayload = (form) => {
     isGraduate: Boolean(form?.isGraduate),
     workExperience: experiences,
     cv: form?.isGraduate ? form?.cv || null : null,
+    razorpayAccountId: form?.razorpayAccountId?.trim() || '',
   };
 };
 
-const SectionCard = ({ title, action, children }) => (
+const SectionCard = ({ title, action, children, user }) => (
   <section className="rounded-md border overflow-hidden shadow-lg" style={{ background: 'rgba(255, 255, 255, 0.1)', backdropFilter: 'blur(10px)', borderColor: user?.role === 'admin' ? '#9ca3af' : '#ffffff' }}>
     <header className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'rgba(255, 255, 255, 0.2)', background: 'rgba(255, 255, 255, 0.05)' }}>
       <h2 className="text-sm uppercase tracking-wider font-bold" style={{ color: '#ffffff' }}>{title}</h2>
@@ -498,7 +500,7 @@ const Profile = () => {
           <div className="grid lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
               <motion.div variants={cardVariants}>
-                <SectionCard title="User Information">
+                <SectionCard title="User Information" user={user}>
                   <FieldRow label="Full Name">
                     {editMode ? (
                       <input
@@ -628,7 +630,7 @@ const Profile = () => {
 
               {user.role === 'worker' && (
                 <motion.div variants={cardVariants}>
-                  <SectionCard title="Career Portfolio">
+                  <SectionCard title="Career Portfolio" user={user}>
                     <input
                       ref={cvInputRef}
                       type="file"
@@ -817,6 +819,26 @@ const Profile = () => {
                             </button>
                           )}
                         </FieldRow>
+
+                        <FieldRow label="Razorpay Account ID" last>
+                          {editMode ? (
+                            <div>
+                              <input
+                                value={workerForm.razorpayAccountId}
+                                onChange={(e) => setWorkerForm(prev => ({ ...prev, razorpayAccountId: e.target.value }))}
+                                className="input-field text-black placeholder-gray-500"
+                                placeholder="acc_XXXXXXXXXXXXXXXX"
+                              />
+                              <p className="text-[11px] text-gray-500 mt-1.5">
+                                Enter your Razorpay Linked Account ID (e.g., acc_123456789) to receive payments.
+                              </p>
+                            </div>
+                          ) : (
+                            <span style={{ color: '#ffffff' }}>
+                              {workerForm.razorpayAccountId || 'Not set up'}
+                            </span>
+                          )}
+                        </FieldRow>
                       </>
                     )}
                   </SectionCard>
@@ -827,7 +849,7 @@ const Profile = () => {
             <div className="space-y-6">
               {user.role !== 'admin' && (
                 <motion.div variants={cardVariants}>
-                  <SectionCard title="Work Information">
+                  <SectionCard title="Work Information" user={user}>
                     <FieldRow label="Availability Status">
                       {editMode ? (
                         <button
@@ -858,7 +880,7 @@ const Profile = () => {
               )}
 
               <motion.div variants={cardVariants}>
-                <SectionCard title="Contact">
+                <SectionCard title="Contact" user={user}>
                   <FieldRow label="Phone">
                     {formData.phone ? (
                       <a href={`tel:${formData.phone}`} className="transition-colors" style={{ color: '#ffffff' }}>

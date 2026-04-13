@@ -4,7 +4,7 @@ const paymentSchema = new mongoose.Schema(
   {
     job: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Job',
+      ref: 'Task',
       required: true,
     },
     provider: {
@@ -65,6 +65,10 @@ const paymentSchema = new mongoose.Schema(
       ref: 'User',
     },
     notes: {
+      type: String,
+      default: '',
+    },
+    razorpayTransferId: {
       type: String,
       default: '',
     },

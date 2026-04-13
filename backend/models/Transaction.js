@@ -4,7 +4,7 @@ const transactionSchema = new mongoose.Schema(
   {
     job: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Job',
+      ref: 'Task',
       required: true,
     },
     provider: {
@@ -29,7 +29,7 @@ const transactionSchema = new mongoose.Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ['wallet', 'upi', 'card', 'netbanking', 'cash'],
+      enum: ['wallet', 'upi', 'card', 'netbanking', 'cash', 'razorpay'],
       default: 'wallet',
     },
     transactionId: {
