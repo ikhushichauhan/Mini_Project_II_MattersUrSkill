@@ -12,10 +12,7 @@ const resolveApiBaseUrl = () => {
 
   if (configuredUrl) {
     const normalizedUrl = configuredUrl.replace(/\/$/, '');
-
-    if (isLocalHost() || !isLocalApiUrl(normalizedUrl)) {
-      return `${normalizedUrl}/api`;
-    }
+    return `${normalizedUrl}/api`;
   }
 
   if (isLocalHost()) {
@@ -28,7 +25,7 @@ const resolveApiBaseUrl = () => {
 const axiosInstance = axios.create({
   baseURL: resolveApiBaseUrl(),
   headers: { 'Content-Type': 'application/json' },
-  timeout: 15000,
+  timeout: 30000,
 });
 
 axiosInstance.interceptors.request.use(
@@ -49,6 +46,14 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (!error.response) {
+      const networkError = new Error(
+        'Cannot reach the API server. Check your backend URL and network connection.'
+      );
+      networkError.isNetworkError = true;
+      return Promise.reject(networkError);
+    }
+    
     const hadToken = Boolean(localStorage.getItem('token'));
     if (error.response?.status === 401 && hadToken) {
       localStorage.removeItem('token');

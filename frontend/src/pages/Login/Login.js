@@ -88,7 +88,10 @@ const Login = () => {
       await login(formData.email, formData.password);
       navigate('/');
     } catch (err) {
-      setFormError(err.message);
+      const errorMsg = err.isNetworkError 
+        ? 'Cannot reach the API server. Please ensure the backend is running on http://localhost:5000'
+        : (err.response?.data?.message || err.message || 'Login failed');
+      setFormError(errorMsg);
     } finally { setSubmitting(false); }
   };
 
@@ -131,7 +134,10 @@ const Login = () => {
         setRegStep('verify-otp');
       }
     } catch (err) {
-      setFormError(err.message);
+      const errorMsg = err.isNetworkError 
+        ? 'Cannot reach the API server. Please ensure the backend is running on http://localhost:5000'
+        : (err.response?.data?.message || err.message || 'Registration failed');
+      setFormError(errorMsg);
     } finally { setSubmitting(false); }
   };
 
