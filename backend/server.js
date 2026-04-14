@@ -145,10 +145,16 @@ io.on('connection', (socket) => {
 
 app.set('userSockets', userSockets);
 
-server.listen(PORT, () => {
-  console.log(
-    ` MattersUrSkill server running in ${
-      process.env.NODE_ENV
-    } mode on port ${PORT}`
-  );
-});
+// Only listen when running directly (local/Render), not on Vercel serverless
+if (require.main === module) {
+  server.listen(PORT, () => {
+    console.log(
+      ` MattersUrSkill server running in ${
+        process.env.NODE_ENV
+      } mode on port ${PORT}`
+    );
+  });
+}
+
+// Required for Vercel serverless deployment
+module.exports = app;
