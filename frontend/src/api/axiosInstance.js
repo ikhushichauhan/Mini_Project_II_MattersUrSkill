@@ -5,8 +5,6 @@ const isLocalHost = () => {
   return ['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname);
 };
 
-const isLocalApiUrl = (url) => /(^|\/\/)(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?(\/|$)/.test(url);
-
 const resolveApiBaseUrl = () => {
   const configuredUrl = process.env.REACT_APP_API_URL?.trim();
 
