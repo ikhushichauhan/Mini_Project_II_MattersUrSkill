@@ -14,7 +14,7 @@ const getAuthErrorMessage = (err, fallbackMessage) => {
   }
 
   if (err.message === 'Network Error') {
-    return 'Cannot reach the server. Make sure the backend is running on port 5000.';
+    return 'Cannot reach the API server. Check your backend URL and network connection.';
   }
 
   return err.message || fallbackMessage;
