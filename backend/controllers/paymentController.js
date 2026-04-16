@@ -5,10 +5,20 @@ const Task = require('../models/Task');
 const Transaction = require('../models/Transaction');
 const Worker = require('../models/Worker');
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+// Lazy-initialize Razorpay so missing env vars don't crash the entire app
+let _razorpay = null;
+const getRazorpay = () => {
+  if (!_razorpay) {
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+      throw new Error('Razorpay credentials are not configured. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET.');
+    }
+    _razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
+  }
+  return _razorpay;
+};
 
 const PLATFORM_COMMISSION_PERCENT = 10;
 
