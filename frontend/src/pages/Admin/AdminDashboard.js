@@ -403,23 +403,23 @@ export default function AdminDashboard() {
                   <tbody className="divide-y" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
                     {transactions.map((txn) => (
                       <tr key={txn._id}>
-                        <td className="px-4 py-3 text-sm text-white font-medium">{txn.provider?.name || 'N/A'}</td>
-                        <td className="px-4 py-3 text-sm text-gray-400">{txn.worker?.name || 'N/A'}</td>
-                        <td className="px-4 py-3 text-sm text-white font-semibold">₹{txn.amount}</td>
-                        <td className="px-4 py-3 text-xs text-gray-400">₹{txn.platformCommission}</td>
-                        <td className="px-4 py-3 text-xs text-gray-400">{txn.job?.title || 'N/A'}</td>
+                        <td className="px-4 py-3 text-sm text-black font-medium">{txn.provider?.name || 'N/A'}</td>
+                        <td className="px-4 py-3 text-sm text-black">{txn.worker?.name || 'N/A'}</td>
+                        <td className="px-4 py-3 text-sm text-black font-semibold">₹{txn.amount}</td>
+                        <td className="px-4 py-3 text-xs text-black">₹{txn.platformCommission}</td>
+                        <td className="px-4 py-3 text-xs text-black">{txn.job?.title || 'N/A'}</td>
                         <td className="px-4 py-3">
-                          <span className="px-2 py-1 text-xs font-semibold rounded-full" style={{ background: 'rgba(255,255,255,0.1)', color: '#fff' }}>
+                          <span className="px-2 py-1 text-xs font-semibold rounded-full" style={{ background: 'rgba(0,0,0,0.1)', color: '#000' }}>
                             {txn.status}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-xs">
                           <div className="space-y-1">
-                            <div className="text-gray-400">Provider: {txn.providerConfirmed ? '✓' : '✗'}</div>
-                            <div className="text-gray-400">Worker: {txn.workerConfirmed ? '✓' : '✗'}</div>
+                            <div className="text-black">Provider: {txn.providerConfirmed ? '✓' : '✗'}</div>
+                            <div className="text-black">Worker: {txn.workerConfirmed ? '✓' : '✗'}</div>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-xs text-gray-500">{new Date(txn.createdAt).toLocaleDateString()}</td>
+                        <td className="px-4 py-3 text-xs text-black">{new Date(txn.createdAt).toLocaleDateString()}</td>
                         <td className="px-4 py-3">
                           {txn.status === 'held' && txn.providerConfirmed && txn.workerConfirmed && (
                             <button onClick={() => handleReleasePayment(txn._id)} className="px-3 py-1 text-xs font-medium rounded bg-white text-black hover:bg-gray-200">
