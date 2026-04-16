@@ -76,7 +76,7 @@ const TH = ({ children }) => (
   </th>
 );
 const TD = ({ children, cls = '' }) => (
-  <td className={`px-4 py-3 text-sm text-neutral-300 ${cls}`}>{children}</td>
+  <td className={`px-4 py-3 text-sm text-neutral-900 ${cls}`}>{children}</td>
 );
 
 export default function Admin() {
