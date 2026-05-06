@@ -27,7 +27,6 @@ This gap results in unemployment, dependency on middlemen, and underutilization 
 ## Proposed Solution
 
 MattersUrSkill is designed as a MERN stack–based web platform that connects people who need work done with individuals willing to work based on their skills, availability, and location.
-
 Workers can list their skills such as home-based work, part-time tasks, or local services, while work providers can post tasks with details like location, duration, and payment. The platform aims to ensure trust through verification and transparency through ratings and feedback.
 
 ---
