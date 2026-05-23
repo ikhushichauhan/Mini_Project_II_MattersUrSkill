@@ -14,7 +14,7 @@ This gap results in unemployment, dependency on middlemen, and underutilization 
 
 ---
 
-## Objectives
+## Objectives :
 
 - To provide a trusted digital platform for skill-based work opportunities  
 - To empower students, housewives, and unemployed individuals through flexible work options  
