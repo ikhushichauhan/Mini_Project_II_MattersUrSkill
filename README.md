@@ -49,7 +49,6 @@ The project has advanced significantly:
  Backend: Express APIs for registration, login, and job posting have been tested successfully.
  Database: MongoDB schemas for users, jobs, and ratings are functional.
  Security: JWT and Bcrypt implemented, OTP verification active.
-
 Remaining tasks include deployment and payment API integration.
 
 
